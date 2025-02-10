@@ -27,25 +27,25 @@ function aggiungiArticolo() {
     container.appendChild(div);
 }
 
-// Funzione per aggiornare il titolo del menu a tendina con il codice articolo
+// Aggiorna il nome dell'articolo con il codice inserito
 function aggiornaTitolo(input, id) {
     const summary = document.querySelector(`#articolo-${id} summary`);
     summary.textContent = input.value || "Nuovo Articolo";
 }
 
-// Funzione per salvare un articolo e chiuderlo nel menu a tendina
+// Salva un articolo e chiude il menu a tendina
 function salvaArticolo(id) {
     document.getElementById(`articolo-${id}`).open = false;
     salvaDati();
 }
 
-// Funzione per rimuovere un articolo
+// Rimuove un articolo e aggiorna i dati
 function rimuoviArticolo(btn) {
     btn.parentElement.parentElement.remove();
     salvaDati();
 }
 
-// Funzione per calcolare il prezzo netto e il prezzo totale
+// Calcola il prezzo netto e totale degli articoli
 function calcolaPrezzo(input) {
     const row = input.closest(".articolo");
     const prezzoLordo = parseFloat(row.querySelector(".prezzoLordo").value) || 0;
@@ -61,7 +61,7 @@ function calcolaPrezzo(input) {
     aggiornaTotaleGenerale();
 }
 
-// Funzione per aggiornare il totale generale
+// Aggiorna il totale degli articoli
 function aggiornaTotaleGenerale() {
     let totaleGenerale = 0;
     document.querySelectorAll(".prezzoTotale").forEach(input => {
@@ -72,22 +72,21 @@ function aggiornaTotaleGenerale() {
     calcolaMarginalita();
 }
 
-// Funzione per calcolare il totale con marginalità
+// Calcola il totale con marginalità
 function calcolaMarginalita() {
     const totaleArticoli = parseFloat(document.getElementById("totaleArticoli").textContent.replace(/[^0-9.,]/g, "")) || 0;
     const margine = parseFloat(document.getElementById("margine").value) || 0;
-    
+
     let nuovoTotale = totaleArticoli;
     if (margine > 0) {
         nuovoTotale = totaleArticoli / (1 - margine / 100);
     }
     
     document.getElementById("totaleMarginalita").textContent = `Nuovo Totale Articoli: ${nuovoTotale.toFixed(2)}€`;
-
     calcolaTotaleFinale();
 }
 
-// Funzione per calcolare il totale finale sommando trasporto e installazione
+// Calcola il totale finale considerando trasporto e installazione
 function calcolaTotaleFinale() {
     const nuovoTotale = parseFloat(document.getElementById("totaleMarginalita").textContent.replace(/[^0-9.,]/g, "")) || 0;
     const costoTrasporto = parseFloat(document.getElementById("costoTrasporto").value) || 0;
@@ -97,29 +96,49 @@ function calcolaTotaleFinale() {
     document.getElementById("totaleFinale").textContent = `Totale Finale: ${totaleFinale.toFixed(2)}€`;
 }
 
-// Funzione per generare il PDF
+// Genera il PDF con o senza i codici articolo
 function generaPDF() {
     let contenuto = "Preventivo FastSale\n\n";
-    contenuto += document.getElementById("totaleArticoli").textContent + "\n";
-    contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
+    const mostraCodici = document.getElementById("mostraCodici").checked;
+
+    if (mostraCodici) {
+        contenuto += "Elenco Articoli:\n";
+        document.querySelectorAll(".articolo").forEach(articolo => {
+            const codice = articolo.querySelector(".codice").value;
+            const descrizione = articolo.querySelector(".descrizione").value;
+            contenuto += `- Codice: ${codice}, Descrizione: ${descrizione}\n`;
+        });
+        contenuto += "\n";
+    }
+
     contenuto += document.getElementById("totaleFinale").textContent + "\n";
-    
+
     const blob = new Blob([contenuto], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    
+
     const a = document.createElement("a");
     a.href = url;
     a.download = "preventivo.txt";
     a.click();
-    
+
     URL.revokeObjectURL(url);
 }
 
-// Funzione per inviare i dati su WhatsApp
+// Invia i dati su WhatsApp con lo stesso formato del PDF
 function inviaWhatsApp() {
-    let testo = "Preventivo FastSale:\n";
-    testo += document.getElementById("totaleArticoli").textContent + "\n";
-    testo += document.getElementById("totaleMarginalita").textContent + "\n";
+    let testo = "Preventivo FastSale:\n\n";
+    const mostraCodici = document.getElementById("mostraCodici").checked;
+
+    if (mostraCodici) {
+        testo += "Elenco Articoli:\n";
+        document.querySelectorAll(".articolo").forEach(articolo => {
+            const codice = articolo.querySelector(".codice").value;
+            const descrizione = articolo.querySelector(".descrizione").value;
+            testo += `- Codice: ${codice}, Descrizione: ${descrizione}\n`;
+        });
+        testo += "\n";
+    }
+
     testo += document.getElementById("totaleFinale").textContent + "\n";
 
     const encodedText = encodeURIComponent(testo);
