@@ -113,12 +113,7 @@ function salvaPreventivo() {
     aggiornaListaPreventivi();
 }
 
-// Funzione per caricare la lista dei preventivi salvati
-function caricaPreventiviSalvati() {
-    aggiornaListaPreventivi();
-}
-
-// Funzione per aggiornare l'elenco dei preventivi nella select
+// Funzione per aggiornare la lista dei preventivi salvati
 function aggiornaListaPreventivi() {
     const select = document.getElementById("listaPreventivi");
     select.innerHTML = "";
@@ -130,6 +125,28 @@ function aggiornaListaPreventivi() {
         option.textContent = preventivo.nome;
         select.appendChild(option);
     });
+}
+
+// Funzione per richiamare un preventivo salvato
+function richiamaPreventivo() {
+    const select = document.getElementById("listaPreventivi");
+    const index = select.value;
+    if (index === "") return;
+
+    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
+    alert("Contenuto del preventivo:\n\n" + preventivi[index].dati);
+}
+
+// Funzione per eliminare preventivi selezionati
+function eliminaPreventiviSelezionati() {
+    const select = document.getElementById("listaPreventivi");
+    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
+
+    const selezionati = Array.from(select.selectedOptions).map(option => parseInt(option.value));
+    preventivi = preventivi.filter((_, index) => !selezionati.includes(index));
+
+    localStorage.setItem("preventivi", JSON.stringify(preventivi));
+    aggiornaListaPreventivi();
 }
 
 // Funzione per generare il PDF
