@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
     caricaDatiSalvati();
 });
 
+// Funzione per aggiungere un articolo
 function aggiungiArticolo() {
     const container = document.getElementById("articoli-container");
     const idUnico = Date.now();
@@ -26,21 +27,25 @@ function aggiungiArticolo() {
     container.appendChild(div);
 }
 
+// Funzione per aggiornare il titolo del menu a tendina con il codice articolo
 function aggiornaTitolo(input, id) {
     const summary = document.querySelector(`#articolo-${id} summary`);
     summary.textContent = input.value || "Nuovo Articolo";
 }
 
+// Funzione per salvare un articolo e chiuderlo nel menu a tendina
 function salvaArticolo(id) {
     document.getElementById(`articolo-${id}`).open = false;
     salvaDati();
 }
 
+// Funzione per rimuovere un articolo
 function rimuoviArticolo(btn) {
     btn.parentElement.parentElement.remove();
     salvaDati();
 }
 
+// Funzione per calcolare il prezzo netto e il prezzo totale
 function calcolaPrezzo(input) {
     const row = input.closest(".articolo");
     const prezzoLordo = parseFloat(row.querySelector(".prezzoLordo").value) || 0;
@@ -56,6 +61,7 @@ function calcolaPrezzo(input) {
     aggiornaTotaleGenerale();
 }
 
+// Funzione per aggiornare il totale generale
 function aggiornaTotaleGenerale() {
     let totaleGenerale = 0;
     document.querySelectorAll(".prezzoTotale").forEach(input => {
@@ -66,19 +72,22 @@ function aggiornaTotaleGenerale() {
     calcolaMarginalita();
 }
 
+// Funzione per calcolare il totale con marginalità
 function calcolaMarginalita() {
     const totaleArticoli = parseFloat(document.getElementById("totaleArticoli").textContent.replace(/[^0-9.,]/g, "")) || 0;
     const margine = parseFloat(document.getElementById("margine").value) || 0;
     
+    let nuovoTotale = totaleArticoli;
     if (margine > 0) {
-        const nuovoTotale = totaleArticoli / (1 - margine / 100);
-        document.getElementById("totaleMarginalita").textContent = `Nuovo Totale Articoli: ${nuovoTotale.toFixed(2)}€`;
-    } else {
-        document.getElementById("totaleMarginalita").textContent = "Nuovo Totale Articoli: 0,00€";
+        nuovoTotale = totaleArticoli / (1 - margine / 100);
     }
+    
+    document.getElementById("totaleMarginalita").textContent = `Nuovo Totale Articoli: ${nuovoTotale.toFixed(2)}€`;
+
     calcolaTotaleFinale();
 }
 
+// Funzione per calcolare il totale finale sommando trasporto e installazione
 function calcolaTotaleFinale() {
     const nuovoTotale = parseFloat(document.getElementById("totaleMarginalita").textContent.replace(/[^0-9.,]/g, "")) || 0;
     const costoTrasporto = parseFloat(document.getElementById("costoTrasporto").value) || 0;
@@ -88,69 +97,33 @@ function calcolaTotaleFinale() {
     document.getElementById("totaleFinale").textContent = `Totale Finale: ${totaleFinale.toFixed(2)}€`;
 }
 
-function salvaDati() {
-    const cliente = {
-        nomeAzienda: document.getElementById("nomeAzienda").value,
-        citta: document.getElementById("citta").value,
-        indirizzo: document.getElementById("indirizzo").value,
-        telefono: document.getElementById("telefono").value,
-        email: document.getElementById("email").value,
-    };
-
-    const articoli = [];
-    document.querySelectorAll(".articolo").forEach(articolo => {
-        articoli.push({
-            codice: articolo.querySelector(".codice").value,
-            descrizione: articolo.querySelector(".descrizione").value,
-            prezzoLordo: articolo.querySelector(".prezzoLordo").value,
-            sconto: articolo.querySelector(".sconto").value,
-            prezzoNetto: articolo.querySelector(".prezzoNetto").value,
-            quantita: articolo.querySelector(".quantita").value,
-            prezzoTotale: articolo.querySelector(".prezzoTotale").value
-        });
-    });
-
-    const marginalita = {
-        mc: document.getElementById("margine").value,
-        trasporto: document.getElementById("trasporto").value,
-        costoTrasporto: document.getElementById("costoTrasporto").value,
-        installazione: document.getElementById("installazione").value,
-        costoInstallazione: document.getElementById("costoInstallazione").value
-    };
-
-    localStorage.setItem("cliente", JSON.stringify(cliente));
-    localStorage.setItem("articoli", JSON.stringify(articoli));
-    localStorage.setItem("marginalita", JSON.stringify(marginalita));
-
-    aggiornaTotaleGenerale();
+// Funzione per generare il PDF
+function generaPDF() {
+    let contenuto = "Preventivo FastSale\n\n";
+    contenuto += document.getElementById("totaleArticoli").textContent + "\n";
+    contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
+    contenuto += document.getElementById("totaleFinale").textContent + "\n";
+    
+    const blob = new Blob([contenuto], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "preventivo.txt";
+    a.click();
+    
+    URL.revokeObjectURL(url);
 }
 
-function caricaDatiSalvati() {
-    const cliente = JSON.parse(localStorage.getItem("cliente"));
-    if (cliente) {
-        document.getElementById("nomeAzienda").value = cliente.nomeAzienda;
-        document.getElementById("citta").value = cliente.citta;
-        document.getElementById("indirizzo").value = cliente.indirizzo;
-        document.getElementById("telefono").value = cliente.telefono;
-        document.getElementById("email").value = cliente.email;
-    }
+// Funzione per inviare i dati su WhatsApp
+function inviaWhatsApp() {
+    let testo = "Preventivo FastSale:\n";
+    testo += document.getElementById("totaleArticoli").textContent + "\n";
+    testo += document.getElementById("totaleMarginalita").textContent + "\n";
+    testo += document.getElementById("totaleFinale").textContent + "\n";
 
-    const articoli = JSON.parse(localStorage.getItem("articoli"));
-    if (articoli) {
-        articoli.forEach(articolo => {
-            aggiungiArticolo();
-            const rows = document.querySelectorAll(".articolo");
-            const lastRow = rows[rows.length - 1];
-            lastRow.querySelector(".codice").value = articolo.codice;
-            lastRow.querySelector(".descrizione").value = articolo.descrizione;
-            lastRow.querySelector(".prezzoLordo").value = articolo.prezzoLordo;
-            lastRow.querySelector(".sconto").value = articolo.sconto;
-            lastRow.querySelector(".prezzoNetto").value = articolo.prezzoNetto;
-            lastRow.querySelector(".quantita").value = articolo.quantita;
-            lastRow.querySelector(".prezzoTotale").value = articolo.prezzoTotale;
-            aggiornaTitolo(lastRow.querySelector(".codice"), lastRow.id.split('-')[1]);
-        });
-    }
+    const encodedText = encodeURIComponent(testo);
+    const whatsappUrl = `https://wa.me/?text=${encodedText}`;
 
-    aggiornaTotaleGenerale();
+    window.open(whatsappUrl, "_blank");
 }
