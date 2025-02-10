@@ -130,6 +130,8 @@ function generaPDF() {
     }
 
     contenuto += document.getElementById("totaleFinale").textContent + "\n";
+    contenuto += `Modalità di Pagamento: ${document.getElementById("modalitaPagamento").value}\n\n`;
+    contenuto += "I PREZZI SONO AL NETTO DI IVA DEL 22%.";
 
     const blob = new Blob([contenuto], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -144,16 +146,7 @@ function generaPDF() {
 
 // Invia i dati su WhatsApp
 function inviaWhatsApp() {
-    let testo = "Preventivo FastSale:\n\n";
-    const dataOggi = new Date().toLocaleDateString("it-IT");
-    testo += `Data: ${dataOggi}\n\n`;
-
-    testo += `Cliente: ${document.getElementById("nomeAzienda").value}\n`;
-    testo += `Città: ${document.getElementById("citta").value}\n`;
-    testo += `Indirizzo: ${document.getElementById("indirizzo").value}\n`;
-    testo += `Telefono: ${document.getElementById("telefono").value}\n\n`;
-
-    testo += document.getElementById("totaleFinale").textContent + "\n";
+    let testo = "Preventivo FastSale:\n\n" + document.querySelector("body").innerText;
 
     const encodedText = encodeURIComponent(testo);
     const whatsappUrl = `https://wa.me/?text=${encodedText}`;
