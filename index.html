@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastSale</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <script defer src="app.js"></script>
+</head>
+<body>
+    <header>
+        <h1>FastSale - Preventivi Veloci</h1>
+    </header>
+
+    <main>
+        <section id="cliente">
+            <h2>Dati Cliente</h2>
+            <label>Nome Azienda: <input type="text" id="nomeAzienda"></label>
+            <label>Città: <input type="text" id="citta"></label>
+            <label>Indirizzo: <input type="text" id="indirizzo"></label>
+            <label>Cell/Tel: <input type="text" id="telefono"></label>
+            <label>Email (opzionale): <input type="email" id="email"></label>
+        </section>
+
+        <section id="articoli">
+            <h2>Articoli</h2>
+            <div id="articoli-container"></div>
+            <button onclick="aggiungiArticolo()">Aggiungi Articolo</button>
+        </section>
+
+        <section id="marginalita">
+            <h2>Marginalità & Costi</h2>
+            <label>Marginalità (%): <input type="number" id="margine" step="0.01"></label>
+            <label>Trasporto:
+                <select id="trasporto">
+                    <option value="incluso">Incluso</option>
+                    <option value="forfait">Forfait</option>
+                </select>
+                <input type="number" id="costoTrasporto" step="0.01" placeholder="€">
+            </label>
+            <label>Installazione:
+                <select id="installazione">
+                    <option value="incluso">Incluso</option>
+                    <option value="forfait">Forfait</option>
+                </select>
+                <input type="number" id="costoInstallazione" step="0.01" placeholder="€">
+            </label>
+        </section>
+
+        <section id="opzioni">
+            <h2>Opzioni PDF e WhatsApp</h2>
+            <label><input type="checkbox" id="mostraCodici"> Mostra Codici Articolo</label>
+            <label><input type="checkbox" id="mostraPrezzi"> Mostra Prezzi Netti</label>
+            <label><input type="checkbox" id="mostraMargine"> Mostra Marginalità</label>
+        </section>
+
+        <section id="azioni">
+            <button onclick="generaPDF()">Genera PDF</button>
+            <button onclick="inviaWhatsApp()">Invia su WhatsApp</button>
+        </section>
+    </main>
+
+    <footer>
+        <p>I prezzi sono al netto di IVA del 22%</p>
+    </footer>
+</body>
+</html>
