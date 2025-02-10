@@ -1,5 +1,4 @@
-// Caricamento dei dati salvati al caricamento della pagina
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     caricaDatiSalvati();
 });
 
@@ -10,28 +9,41 @@ function aggiungiArticolo() {
     const div = document.createElement("div");
     div.classList.add("articolo");
 
+    const idUnico = Date.now(); // Identificativo univoco per il menu a tendina
+
     div.innerHTML = `
-        <label>Codice: <input type="text" class="codice"></label>
-        <label>Descrizione: <input type="text" class="descrizione"></label>
-        <label>Prezzo Lordo (€): <input type="number" class="prezzoLordo" step="0.01" oninput="calcolaPrezzo(this)"></label>
-        <label>Sconto (%): <input type="number" class="sconto" step="0.01" oninput="calcolaPrezzo(this)"></label>
-        <label>Prezzo Netto (€): <input type="text" class="prezzoNetto" readonly></label>
-        <label>Quantità: <input type="number" class="quantita" step="1" oninput="calcolaPrezzo(this)"></label>
-        <label>Prezzo Totale (€): <input type="text" class="prezzoTotale" readonly></label>
-        <button onclick="rimuoviArticolo(this)">Rimuovi</button>
+        <details id="articolo-${idUnico}">
+            <summary>Nuovo Articolo</summary>
+            <label>Codice: <input type="text" class="codice"></label>
+            <label>Descrizione: <input type="text" class="descrizione"></label>
+            <label>Prezzo Lordo (€): <input type="number" class="prezzoLordo" step="0.01" oninput="calcolaPrezzo(this)"></label>
+            <label>Sconto (%): <input type="number" class="sconto" step="0.01" oninput="calcolaPrezzo(this)"></label>
+            <label>Prezzo Netto (€): <input type="text" class="prezzoNetto" readonly></label>
+            <label>Quantità: <input type="number" class="quantita" step="1" oninput="calcolaPrezzo(this)"></label>
+            <label>Prezzo Totale (€): <input type="text" class="prezzoTotale" readonly></label>
+            <button onclick="salvaArticolo(${idUnico})">Salva</button>
+            <button onclick="rimuoviArticolo(this)">Rimuovi</button>
+        </details>
     `;
 
     container.appendChild(div);
 }
 
+// Funzione per salvare un articolo e chiuderlo nel menu a tendina
+function salvaArticolo(id) {
+    document.getElementById(`articolo-${id}`).open = false;
+    salvaDati();
+}
+
 // Funzione per rimuovere un articolo
 function rimuoviArticolo(btn) {
-    btn.parentElement.remove();
+    btn.parentElement.parentElement.remove();
+    salvaDati();
 }
 
 // Funzione per calcolare prezzo netto e totale
 function calcolaPrezzo(input) {
-    const row = input.parentElement.parentElement;
+    const row = input.closest(".articolo");
     const prezzoLordo = parseFloat(row.querySelector(".prezzoLordo").value) || 0;
     const sconto = parseFloat(row.querySelector(".sconto").value) || 0;
     const quantita = parseInt(row.querySelector(".quantita").value) || 1;
@@ -41,18 +53,22 @@ function calcolaPrezzo(input) {
 
     row.querySelector(".prezzoNetto").value = prezzoNetto.toFixed(2);
     row.querySelector(".prezzoTotale").value = prezzoTotale.toFixed(2);
+
+    aggiornaTotaleGenerale();
+}
+
+// Funzione per aggiornare il totale generale di tutti gli articoli
+function aggiornaTotaleGenerale() {
+    let totaleGenerale = 0;
+    document.querySelectorAll(".prezzoTotale").forEach(input => {
+        totaleGenerale += parseFloat(input.value) || 0;
+    });
+
+    document.getElementById("totaleArticoli").textContent = `Totale Articoli: ${totaleGenerale.toFixed(2)}€`;
 }
 
 // Funzione per salvare i dati nel localStorage
 function salvaDati() {
-    const cliente = {
-        nomeAzienda: document.getElementById("nomeAzienda").value,
-        citta: document.getElementById("citta").value,
-        indirizzo: document.getElementById("indirizzo").value,
-        telefono: document.getElementById("telefono").value,
-        email: document.getElementById("email").value,
-    };
-
     const articoli = [];
     document.querySelectorAll(".articolo").forEach(articolo => {
         articoli.push({
@@ -66,32 +82,12 @@ function salvaDati() {
         });
     });
 
-    const marginalita = {
-        mc: document.getElementById("margine").value,
-        trasporto: document.getElementById("trasporto").value,
-        costoTrasporto: document.getElementById("costoTrasporto").value,
-        installazione: document.getElementById("installazione").value,
-        costoInstallazione: document.getElementById("costoInstallazione").value
-    };
-
-    localStorage.setItem("cliente", JSON.stringify(cliente));
     localStorage.setItem("articoli", JSON.stringify(articoli));
-    localStorage.setItem("marginalita", JSON.stringify(marginalita));
-
-    alert("Dati salvati con successo!");
+    aggiornaTotaleGenerale();
 }
 
 // Funzione per caricare i dati salvati
 function caricaDatiSalvati() {
-    const cliente = JSON.parse(localStorage.getItem("cliente"));
-    if (cliente) {
-        document.getElementById("nomeAzienda").value = cliente.nomeAzienda;
-        document.getElementById("citta").value = cliente.citta;
-        document.getElementById("indirizzo").value = cliente.indirizzo;
-        document.getElementById("telefono").value = cliente.telefono;
-        document.getElementById("email").value = cliente.email;
-    }
-
     const articoli = JSON.parse(localStorage.getItem("articoli"));
     if (articoli) {
         articoli.forEach(articolo => {
@@ -108,22 +104,5 @@ function caricaDatiSalvati() {
         });
     }
 
-    const marginalita = JSON.parse(localStorage.getItem("marginalita"));
-    if (marginalita) {
-        document.getElementById("margine").value = marginalita.mc;
-        document.getElementById("trasporto").value = marginalita.trasporto;
-        document.getElementById("costoTrasporto").value = marginalita.costoTrasporto;
-        document.getElementById("installazione").value = marginalita.installazione;
-        document.getElementById("costoInstallazione").value = marginalita.costoInstallazione;
-    }
-}
-
-// Funzione per generare il PDF (da completare)
-function generaPDF() {
-    alert("Funzione per la generazione PDF in sviluppo...");
-}
-
-// Funzione per inviare dati su WhatsApp (da completare)
-function inviaWhatsApp() {
-    alert("Funzione per l'invio su WhatsApp in sviluppo...");
+    aggiornaTotaleGenerale();
 }
