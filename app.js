@@ -97,60 +97,24 @@ function calcolaTotaleFinale() {
     document.getElementById("totaleFinale").textContent = `Totale Finale: ${totaleFinale.toFixed(2)}€`;
 }
 
-// Funzioni per salvare e gestire preventivi
-function salvaPreventivo() {
-    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
-    const nomePreventivo = prompt("Inserisci il nome del preventivo:");
-    if (!nomePreventivo) return;
+// Funzione per generare il contenuto del PDF e WhatsApp
+function generaContenuto() {
+    let contenuto = "Preventivo FastSale\n\n";
+    const dataOggi = new Date().toLocaleDateString("it-IT");
 
-    const preventivo = {
-        nome: nomePreventivo,
-        dati: generaContenuto()
-    };
-    
-    preventivi.push(preventivo);
-    localStorage.setItem("preventivi", JSON.stringify(preventivi));
-    aggiornaListaPreventivi();
+    contenuto += `Data: ${dataOggi}\n\n`;
+    contenuto += `Cliente: ${document.getElementById("nomeAzienda").value}\n`;
+    contenuto += `Città: ${document.getElementById("citta").value}\n`;
+    contenuto += `Indirizzo: ${document.getElementById("indirizzo").value}\n`;
+    contenuto += `Telefono: ${document.getElementById("telefono").value}\n\n`;
+    contenuto += document.getElementById("totaleFinale").textContent + "\n";
+    contenuto += `Modalità di Pagamento: ${document.getElementById("modalitaPagamento").value}\n\n`;
+    contenuto += "I PREZZI SONO AL NETTO DI IVA DEL 22%.";
+
+    return contenuto;
 }
 
-function caricaPreventiviSalvati() {
-    aggiornaListaPreventivi();
-}
-
-function aggiornaListaPreventivi() {
-    const select = document.getElementById("listaPreventivi");
-    select.innerHTML = "";
-
-    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
-    preventivi.forEach((preventivo, index) => {
-        const option = document.createElement("option");
-        option.value = index;
-        option.textContent = preventivo.nome;
-        select.appendChild(option);
-    });
-}
-
-function richiamaPreventivo() {
-    const select = document.getElementById("listaPreventivi");
-    const index = select.value;
-    if (index === "") return;
-
-    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
-    alert("Contenuto del preventivo:\n\n" + preventivi[index].dati);
-}
-
-function eliminaPreventiviSelezionati() {
-    const select = document.getElementById("listaPreventivi");
-    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
-
-    const selezionati = Array.from(select.selectedOptions).map(option => parseInt(option.value));
-    preventivi = preventivi.filter((_, index) => !selezionati.includes(index));
-
-    localStorage.setItem("preventivi", JSON.stringify(preventivi));
-    aggiornaListaPreventivi();
-}
-
-// Genera PDF
+// Funzione per generare il PDF
 function generaPDF() {
     const contenuto = generaContenuto();
     const blob = new Blob([contenuto], { type: "text/plain" });
@@ -164,7 +128,7 @@ function generaPDF() {
     URL.revokeObjectURL(url);
 }
 
-// Invia preventivo via WhatsApp
+// Funzione per inviare il preventivo via WhatsApp
 function inviaWhatsApp() {
     const testo = generaContenuto();
     const encodedText = encodeURIComponent(testo);
