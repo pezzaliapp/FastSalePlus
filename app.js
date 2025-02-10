@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     caricaDatiSalvati();
+    caricaPreventiviSalvati();
 });
 
 // Funzione per aggiungere un articolo
@@ -96,47 +97,60 @@ function calcolaTotaleFinale() {
     document.getElementById("totaleFinale").textContent = `Totale Finale: ${totaleFinale.toFixed(2)}€`;
 }
 
-// Genera il contenuto per PDF e WhatsApp
-function generaContenuto() {
-    let contenuto = "Preventivo FastSale\n\n";
+// Funzioni per salvare e gestire preventivi
+function salvaPreventivo() {
+    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
+    const nomePreventivo = prompt("Inserisci il nome del preventivo:");
+    if (!nomePreventivo) return;
 
-    const dataOggi = new Date().toLocaleDateString("it-IT");
-    contenuto += `Data: ${dataOggi}\n\n`;
-
-    contenuto += `Cliente: ${document.getElementById("nomeAzienda").value}\n`;
-    contenuto += `Città: ${document.getElementById("citta").value}\n`;
-    contenuto += `Indirizzo: ${document.getElementById("indirizzo").value}\n`;
-    contenuto += `Telefono: ${document.getElementById("telefono").value}\n\n`;
-
-    const mostraCodici = document.getElementById("mostraCodici").checked;
-    const mostraTrasporto = document.getElementById("mostraTrasporto").checked;
-    const mostraCompenso = document.getElementById("mostraCompenso").checked;
-
-    contenuto += "Elenco Articoli:\n";
-    document.querySelectorAll(".articolo").forEach(articolo => {
-        const codice = articolo.querySelector(".codice").value;
-        const descrizione = articolo.querySelector(".descrizione").value;
-        const quantita = articolo.querySelector(".quantita").value;
-
-        contenuto += `- Codice: ${codice}, Descrizione: ${descrizione}, Quantità: ${quantita}\n`;
-    });
-
-    if (mostraTrasporto) {
-        contenuto += "Trasporto e Installazione inclusi\n";
-    }
-
-    if (mostraCompenso) {
-        contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
-    }
-
-    contenuto += document.getElementById("totaleFinale").textContent + "\n";
-    contenuto += `Modalità di Pagamento: ${document.getElementById("modalitaPagamento").value}\n\n`;
-    contenuto += "I PREZZI SONO AL NETTO DI IVA DEL 22%.";
-
-    return contenuto;
+    const preventivo = {
+        nome: nomePreventivo,
+        dati: generaContenuto()
+    };
+    
+    preventivi.push(preventivo);
+    localStorage.setItem("preventivi", JSON.stringify(preventivi));
+    aggiornaListaPreventivi();
 }
 
-// Funzione per generare il PDF
+function caricaPreventiviSalvati() {
+    aggiornaListaPreventivi();
+}
+
+function aggiornaListaPreventivi() {
+    const select = document.getElementById("listaPreventivi");
+    select.innerHTML = "";
+
+    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
+    preventivi.forEach((preventivo, index) => {
+        const option = document.createElement("option");
+        option.value = index;
+        option.textContent = preventivo.nome;
+        select.appendChild(option);
+    });
+}
+
+function richiamaPreventivo() {
+    const select = document.getElementById("listaPreventivi");
+    const index = select.value;
+    if (index === "") return;
+
+    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
+    alert("Contenuto del preventivo:\n\n" + preventivi[index].dati);
+}
+
+function eliminaPreventiviSelezionati() {
+    const select = document.getElementById("listaPreventivi");
+    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
+
+    const selezionati = Array.from(select.selectedOptions).map(option => parseInt(option.value));
+    preventivi = preventivi.filter((_, index) => !selezionati.includes(index));
+
+    localStorage.setItem("preventivi", JSON.stringify(preventivi));
+    aggiornaListaPreventivi();
+}
+
+// Genera PDF
 function generaPDF() {
     const contenuto = generaContenuto();
     const blob = new Blob([contenuto], { type: "text/plain" });
@@ -150,7 +164,7 @@ function generaPDF() {
     URL.revokeObjectURL(url);
 }
 
-// Funzione per inviare il preventivo via WhatsApp
+// Invia preventivo via WhatsApp
 function inviaWhatsApp() {
     const testo = generaContenuto();
     const encodedText = encodeURIComponent(testo);
