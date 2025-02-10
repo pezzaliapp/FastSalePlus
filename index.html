@@ -7,13 +7,6 @@
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <script defer src="app.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./service-worker.js')
-                .then(() => console.log("Service Worker registrato con successo."))
-                .catch(error => console.log("Service Worker fallito:", error));
-        }
-    </script>
 </head>
 <body>
     <header>
@@ -62,7 +55,7 @@
         <section id="opzioni">
             <h2>Opzioni PDF e WhatsApp</h2>
             <label><input type="checkbox" id="mostraCodici"> Mostra Codici Articolo e Quantità</label>
-            <label><input type="checkbox" id="mostraTrasporto"> Trasporto incluso o escluso</label>
+            <label><input type="checkbox" id="mostraTrasporto"> Trasporto e Installazione incluso o escluso</label>
             <label><input type="checkbox" id="mostraCompenso"> Compenso visibile sì o no</label>
         </section>
 
