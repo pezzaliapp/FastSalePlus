@@ -97,7 +97,7 @@ function calcolaTotaleFinale() {
     document.getElementById("totaleFinale").textContent = `Totale Finale: ${totaleFinale.toFixed(2)}€`;
 }
 
-// Funzione per generare il contenuto del PDF e WhatsApp
+// Funzione per generare il contenuto del PDF e WhatsApp con i flag selezionati
 function generaContenuto() {
     let contenuto = "Preventivo FastSale\n\n";
     const dataOggi = new Date().toLocaleDateString("it-IT");
@@ -107,6 +107,30 @@ function generaContenuto() {
     contenuto += `Città: ${document.getElementById("citta").value}\n`;
     contenuto += `Indirizzo: ${document.getElementById("indirizzo").value}\n`;
     contenuto += `Telefono: ${document.getElementById("telefono").value}\n\n`;
+
+    const mostraCodici = document.getElementById("mostraCodici").checked;
+    const mostraTrasporto = document.getElementById("mostraTrasporto").checked;
+    const mostraCompenso = document.getElementById("mostraCompenso").checked;
+
+    contenuto += "Elenco Articoli:\n";
+    document.querySelectorAll(".articolo").forEach(articolo => {
+        const codice = articolo.querySelector(".codice").value;
+        const descrizione = articolo.querySelector(".descrizione").value;
+        const quantita = articolo.querySelector(".quantita").value;
+
+        if (mostraCodici) {
+            contenuto += `- Codice: ${codice}, Descrizione: ${descrizione}, Quantità: ${quantita}\n`;
+        }
+    });
+
+    if (mostraTrasporto) {
+        contenuto += "Trasporto e Installazione inclusi\n";
+    }
+
+    if (mostraCompenso) {
+        contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
+    }
+
     contenuto += document.getElementById("totaleFinale").textContent + "\n";
     contenuto += `Modalità di Pagamento: ${document.getElementById("modalitaPagamento").value}\n\n`;
     contenuto += "I PREZZI SONO AL NETTO DI IVA DEL 22%.";
