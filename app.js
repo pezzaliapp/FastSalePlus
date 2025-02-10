@@ -96,9 +96,10 @@ function calcolaTotaleFinale() {
     document.getElementById("totaleFinale").textContent = `Totale Finale: ${totaleFinale.toFixed(2)}€`;
 }
 
-// Genera il PDF con le opzioni selezionate
-function generaPDF() {
+// Genera il contenuto per PDF e WhatsApp
+function generaContenuto() {
     let contenuto = "Preventivo FastSale\n\n";
+
     const dataOggi = new Date().toLocaleDateString("it-IT");
     contenuto += `Data: ${dataOggi}\n\n`;
 
@@ -111,15 +112,21 @@ function generaPDF() {
     const mostraTrasporto = document.getElementById("mostraTrasporto").checked;
     const mostraCompenso = document.getElementById("mostraCompenso").checked;
 
-    if (mostraCodici) {
-        contenuto += "Elenco Articoli:\n";
-        document.querySelectorAll(".articolo").forEach(articolo => {
-            const codice = articolo.querySelector(".codice").value;
-            const descrizione = articolo.querySelector(".descrizione").value;
+    contenuto += "Elenco Articoli:\n";
+    document.querySelectorAll(".articolo").forEach(articolo => {
+        const codice = articolo.querySelector(".codice").value;
+        const descrizione = articolo.querySelector(".descrizione").value;
+        const quantita = articolo.querySelector(".quantita").value;
+        const prezzoNetto = articolo.querySelector(".prezzoNetto").value;
+        const prezzoTotale = articolo.querySelector(".prezzoTotale").value;
+
+        if (mostraCodici) {
             contenuto += `- Codice: ${codice}, Descrizione: ${descrizione}\n`;
-        });
-        contenuto += "\n";
-    }
+        } else {
+            contenuto += `- Codice: ${codice}, Descrizione: ${descrizione}, Quantità: ${quantita}, Prezzo Netto: ${prezzoNetto}€, Prezzo Totale: ${prezzoTotale}€\n`;
+        }
+    });
+    contenuto += "\n";
 
     if (mostraTrasporto) {
         contenuto += `Trasporto: ${document.getElementById("trasporto").value}\n`;
@@ -133,6 +140,12 @@ function generaPDF() {
     contenuto += `Modalità di Pagamento: ${document.getElementById("modalitaPagamento").value}\n\n`;
     contenuto += "I PREZZI SONO AL NETTO DI IVA DEL 22%.";
 
+    return contenuto;
+}
+
+// Funzione per generare il PDF
+function generaPDF() {
+    const contenuto = generaContenuto();
     const blob = new Blob([contenuto], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
 
@@ -144,10 +157,9 @@ function generaPDF() {
     URL.revokeObjectURL(url);
 }
 
-// Invia i dati su WhatsApp
+// Funzione per inviare il preventivo via WhatsApp
 function inviaWhatsApp() {
-    let testo = "Preventivo FastSale:\n\n" + document.querySelector("body").innerText;
-
+    const testo = generaContenuto();
     const encodedText = encodeURIComponent(testo);
     const whatsappUrl = `https://wa.me/?text=${encodedText}`;
 
