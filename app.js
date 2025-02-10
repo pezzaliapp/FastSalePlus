@@ -117,19 +117,12 @@ function generaContenuto() {
         const codice = articolo.querySelector(".codice").value;
         const descrizione = articolo.querySelector(".descrizione").value;
         const quantita = articolo.querySelector(".quantita").value;
-        const prezzoNetto = articolo.querySelector(".prezzoNetto").value;
-        const prezzoTotale = articolo.querySelector(".prezzoTotale").value;
 
-        if (mostraCodici) {
-            contenuto += `- Codice: ${codice}, Descrizione: ${descrizione}, Quantità: ${quantita}\n`;
-        } else {
-            contenuto += `- Codice: ${codice}, Descrizione: ${descrizione}, Quantità: ${quantita}, Prezzo Netto: ${prezzoNetto}€, Prezzo Totale: ${prezzoTotale}€\n`;
-        }
+        contenuto += `- Codice: ${codice}, Descrizione: ${descrizione}, Quantità: ${quantita}\n`;
     });
-    contenuto += "\n";
 
     if (mostraTrasporto) {
-        contenuto += `Trasporto: ${document.getElementById("trasporto").value}\n`;
+        contenuto += "Trasporto e Installazione inclusi\n";
     }
 
     if (mostraCompenso) {
