@@ -97,7 +97,7 @@ function calcolaTotaleFinale() {
     document.getElementById("totaleFinale").textContent = `Totale Finale: ${totaleFinale.toFixed(2)}€`;
 }
 
-// Funzione per salvare un preventivo
+// Salva un preventivo nel LocalStorage
 function salvaPreventivo() {
     let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
     const nomePreventivo = prompt("Inserisci il nome del preventivo:");
@@ -113,7 +113,12 @@ function salvaPreventivo() {
     aggiornaListaPreventivi();
 }
 
-// Funzione per aggiornare la lista dei preventivi salvati
+// Carica la lista dei preventivi salvati
+function caricaPreventiviSalvati() {
+    aggiornaListaPreventivi();
+}
+
+// Aggiorna la lista dei preventivi salvati nella select
 function aggiornaListaPreventivi() {
     const select = document.getElementById("listaPreventivi");
     select.innerHTML = "";
@@ -127,26 +132,22 @@ function aggiornaListaPreventivi() {
     });
 }
 
-// Funzione per richiamare un preventivo salvato
-function richiamaPreventivo() {
-    const select = document.getElementById("listaPreventivi");
-    const index = select.value;
-    if (index === "") return;
+// Funzione per generare il contenuto del PDF e WhatsApp
+function generaContenuto() {
+    let contenuto = "Preventivo FastSale\n\n";
+    const dataOggi = new Date().toLocaleDateString("it-IT");
 
-    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
-    alert("Contenuto del preventivo:\n\n" + preventivi[index].dati);
-}
+    contenuto += `Data: ${dataOggi}\n\n`;
+    contenuto += `Cliente: ${document.getElementById("nomeAzienda").value}\n`;
+    contenuto += `Città: ${document.getElementById("citta").value}\n`;
+    contenuto += `Indirizzo: ${document.getElementById("indirizzo").value}\n`;
+    contenuto += `Telefono: ${document.getElementById("telefono").value}\n\n`;
 
-// Funzione per eliminare preventivi selezionati
-function eliminaPreventiviSelezionati() {
-    const select = document.getElementById("listaPreventivi");
-    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
+    contenuto += document.getElementById("totaleFinale").textContent + "\n";
+    contenuto += `Modalità di Pagamento: ${document.getElementById("modalitaPagamento").value}\n\n`;
+    contenuto += "I PREZZI SONO AL NETTO DI IVA DEL 22%.";
 
-    const selezionati = Array.from(select.selectedOptions).map(option => parseInt(option.value));
-    preventivi = preventivi.filter((_, index) => !selezionati.includes(index));
-
-    localStorage.setItem("preventivi", JSON.stringify(preventivi));
-    aggiornaListaPreventivi();
+    return contenuto;
 }
 
 // Funzione per generare il PDF
