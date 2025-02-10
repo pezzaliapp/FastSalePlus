@@ -28,26 +28,29 @@
             <div id="articoli-container"></div>
             <button onclick="aggiungiArticolo()">Aggiungi Articolo</button>
             <h2 id="totaleArticoli">Totale Articoli: 0,00€</h2>
+            <h2 id="totaleMarginalita">Nuovo Totale Articoli: 0,00€</h2>
         </section>
 
         <section id="marginalita">
             <h2>Marginalità & Costi</h2>
-            <label>Marginalità (%): <input type="number" id="margine" step="0.01"></label>
+            <label>Marginalità (%): <input type="number" id="margine" step="0.01" oninput="calcolaMarginalita()"></label>
             <label>Trasporto:
                 <select id="trasporto">
                     <option value="incluso">Incluso</option>
                     <option value="forfait">Forfait</option>
                 </select>
-                <input type="number" id="costoTrasporto" step="0.01" placeholder="€">
+                <input type="number" id="costoTrasporto" step="0.01" placeholder="€" oninput="calcolaTotaleFinale()">
             </label>
             <label>Installazione:
                 <select id="installazione">
                     <option value="incluso">Incluso</option>
                     <option value="forfait">Forfait</option>
                 </select>
-                <input type="number" id="costoInstallazione" step="0.01" placeholder="€">
+                <input type="number" id="costoInstallazione" step="0.01" placeholder="€" oninput="calcolaTotaleFinale()">
             </label>
         </section>
+
+        <h2 id="totaleFinale">Totale Finale: 0,00€</h2>
 
         <section id="opzioni">
             <h2>Opzioni PDF e WhatsApp</h2>
