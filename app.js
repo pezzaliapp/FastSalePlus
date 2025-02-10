@@ -96,10 +96,20 @@ function calcolaTotaleFinale() {
     document.getElementById("totaleFinale").textContent = `Totale Finale: ${totaleFinale.toFixed(2)}€`;
 }
 
-// Genera il PDF con o senza i codici articolo
+// Genera il PDF con le opzioni selezionate
 function generaPDF() {
     let contenuto = "Preventivo FastSale\n\n";
+    const dataOggi = new Date().toLocaleDateString("it-IT");
+    contenuto += `Data: ${dataOggi}\n\n`;
+
+    contenuto += `Cliente: ${document.getElementById("nomeAzienda").value}\n`;
+    contenuto += `Città: ${document.getElementById("citta").value}\n`;
+    contenuto += `Indirizzo: ${document.getElementById("indirizzo").value}\n`;
+    contenuto += `Telefono: ${document.getElementById("telefono").value}\n\n`;
+
     const mostraCodici = document.getElementById("mostraCodici").checked;
+    const mostraTrasporto = document.getElementById("mostraTrasporto").checked;
+    const mostraCompenso = document.getElementById("mostraCompenso").checked;
 
     if (mostraCodici) {
         contenuto += "Elenco Articoli:\n";
@@ -109,6 +119,14 @@ function generaPDF() {
             contenuto += `- Codice: ${codice}, Descrizione: ${descrizione}\n`;
         });
         contenuto += "\n";
+    }
+
+    if (mostraTrasporto) {
+        contenuto += `Trasporto: ${document.getElementById("trasporto").value}\n`;
+    }
+
+    if (mostraCompenso) {
+        contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
     }
 
     contenuto += document.getElementById("totaleFinale").textContent + "\n";
@@ -124,20 +142,16 @@ function generaPDF() {
     URL.revokeObjectURL(url);
 }
 
-// Invia i dati su WhatsApp con lo stesso formato del PDF
+// Invia i dati su WhatsApp
 function inviaWhatsApp() {
     let testo = "Preventivo FastSale:\n\n";
-    const mostraCodici = document.getElementById("mostraCodici").checked;
+    const dataOggi = new Date().toLocaleDateString("it-IT");
+    testo += `Data: ${dataOggi}\n\n`;
 
-    if (mostraCodici) {
-        testo += "Elenco Articoli:\n";
-        document.querySelectorAll(".articolo").forEach(articolo => {
-            const codice = articolo.querySelector(".codice").value;
-            const descrizione = articolo.querySelector(".descrizione").value;
-            testo += `- Codice: ${codice}, Descrizione: ${descrizione}\n`;
-        });
-        testo += "\n";
-    }
+    testo += `Cliente: ${document.getElementById("nomeAzienda").value}\n`;
+    testo += `Città: ${document.getElementById("citta").value}\n`;
+    testo += `Indirizzo: ${document.getElementById("indirizzo").value}\n`;
+    testo += `Telefono: ${document.getElementById("telefono").value}\n\n`;
 
     testo += document.getElementById("totaleFinale").textContent + "\n";
 
