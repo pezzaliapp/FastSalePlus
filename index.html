@@ -71,6 +71,14 @@
             <input type="text" id="modalitaPagamento" placeholder="Inserire manualmente">
         </section>
 
+        <section id="preventivi">
+            <h2>Gestione Preventivi</h2>
+            <button onclick="salvaPreventivo()">Salva Preventivo</button>
+            <select id="listaPreventivi" multiple></select>
+            <button onclick="richiamaPreventivo()">Richiama Preventivo</button>
+            <button onclick="eliminaPreventiviSelezionati()">Elimina Selezionati</button>
+        </section>
+
         <section id="azioni">
             <button onclick="generaPDF()">Genera PDF</button>
             <button onclick="inviaWhatsApp()">Invia su WhatsApp</button>
