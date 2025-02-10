@@ -121,7 +121,7 @@ function generaContenuto() {
         const prezzoTotale = articolo.querySelector(".prezzoTotale").value;
 
         if (mostraCodici) {
-            contenuto += `- Codice: ${codice}, Descrizione: ${descrizione}\n`;
+            contenuto += `- Codice: ${codice}, Descrizione: ${descrizione}, Quantità: ${quantita}\n`;
         } else {
             contenuto += `- Codice: ${codice}, Descrizione: ${descrizione}, Quantità: ${quantita}, Prezzo Netto: ${prezzoNetto}€, Prezzo Totale: ${prezzoTotale}€\n`;
         }
