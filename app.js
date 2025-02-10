@@ -97,45 +97,39 @@ function calcolaTotaleFinale() {
     document.getElementById("totaleFinale").textContent = `Totale Finale: ${totaleFinale.toFixed(2)}€`;
 }
 
-// Funzione per generare il contenuto del PDF e WhatsApp con i flag selezionati
-function generaContenuto() {
-    let contenuto = "Preventivo FastSale\n\n";
-    const dataOggi = new Date().toLocaleDateString("it-IT");
+// Funzione per salvare un preventivo
+function salvaPreventivo() {
+    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
+    const nomePreventivo = prompt("Inserisci il nome del preventivo:");
+    if (!nomePreventivo) return;
 
-    contenuto += `Data: ${dataOggi}\n\n`;
-    contenuto += `Cliente: ${document.getElementById("nomeAzienda").value}\n`;
-    contenuto += `Città: ${document.getElementById("citta").value}\n`;
-    contenuto += `Indirizzo: ${document.getElementById("indirizzo").value}\n`;
-    contenuto += `Telefono: ${document.getElementById("telefono").value}\n\n`;
+    const preventivo = {
+        nome: nomePreventivo,
+        dati: generaContenuto()
+    };
 
-    const mostraCodici = document.getElementById("mostraCodici").checked;
-    const mostraTrasporto = document.getElementById("mostraTrasporto").checked;
-    const mostraCompenso = document.getElementById("mostraCompenso").checked;
+    preventivi.push(preventivo);
+    localStorage.setItem("preventivi", JSON.stringify(preventivi));
+    aggiornaListaPreventivi();
+}
 
-    contenuto += "Elenco Articoli:\n";
-    document.querySelectorAll(".articolo").forEach(articolo => {
-        const codice = articolo.querySelector(".codice").value;
-        const descrizione = articolo.querySelector(".descrizione").value;
-        const quantita = articolo.querySelector(".quantita").value;
+// Funzione per caricare la lista dei preventivi salvati
+function caricaPreventiviSalvati() {
+    aggiornaListaPreventivi();
+}
 
-        if (mostraCodici) {
-            contenuto += `- Codice: ${codice}, Descrizione: ${descrizione}, Quantità: ${quantita}\n`;
-        }
+// Funzione per aggiornare l'elenco dei preventivi nella select
+function aggiornaListaPreventivi() {
+    const select = document.getElementById("listaPreventivi");
+    select.innerHTML = "";
+
+    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
+    preventivi.forEach((preventivo, index) => {
+        const option = document.createElement("option");
+        option.value = index;
+        option.textContent = preventivo.nome;
+        select.appendChild(option);
     });
-
-    if (mostraTrasporto) {
-        contenuto += "Trasporto e Installazione inclusi\n";
-    }
-
-    if (mostraCompenso) {
-        contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
-    }
-
-    contenuto += document.getElementById("totaleFinale").textContent + "\n";
-    contenuto += `Modalità di Pagamento: ${document.getElementById("modalitaPagamento").value}\n\n`;
-    contenuto += "I PREZZI SONO AL NETTO DI IVA DEL 22%.";
-
-    return contenuto;
 }
 
 // Funzione per generare il PDF
