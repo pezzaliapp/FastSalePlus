@@ -28,7 +28,7 @@ function aggiungiArticolo() {
     container.appendChild(div);
 }
 
-// Funzione per aggiornare il nome dell'articolo con il codice inserito
+// Aggiorna il nome dell'articolo nel menu a tendina
 function aggiornaTitolo(input, id) {
     const summary = document.querySelector(`#articolo-${id} summary`);
     summary.textContent = input.value || "Nuovo Articolo";
@@ -39,7 +39,7 @@ function salvaArticolo(id) {
     document.getElementById(`articolo-${id}`).open = false;
 }
 
-// Rimuove un articolo e aggiorna i dati
+// Rimuove un articolo
 function rimuoviArticolo(btn) {
     btn.parentElement.parentElement.remove();
     aggiornaTotaleGenerale();
@@ -96,7 +96,25 @@ function calcolaTotaleFinale() {
     document.getElementById("totaleFinale").textContent = `Totale Finale: ${totaleFinale.toFixed(2)}€`;
 }
 
-// Funzione per generare il PDF
+// Genera il contenuto del preventivo
+function generaContenuto() {
+    let contenuto = "Preventivo FastSale\n\n";
+    const dataOggi = new Date().toLocaleDateString("it-IT");
+
+    contenuto += `Data: ${dataOggi}\n\n`;
+    contenuto += `Cliente: ${document.getElementById("nomeAzienda").value}\n`;
+    contenuto += `Città: ${document.getElementById("citta").value}\n`;
+    contenuto += `Indirizzo: ${document.getElementById("indirizzo").value}\n`;
+    contenuto += `Telefono: ${document.getElementById("telefono").value}\n\n`;
+
+    contenuto += document.getElementById("totaleFinale").textContent + "\n";
+    contenuto += `Modalità di Pagamento: ${document.getElementById("modalitaPagamento").value}\n\n`;
+    contenuto += "I PREZZI SONO AL NETTO DI IVA DEL 22%.";
+
+    return contenuto;
+}
+
+// Genera il PDF
 function generaPDF() {
     const contenuto = generaContenuto();
     const blob = new Blob([contenuto], { type: "text/plain" });
@@ -110,7 +128,7 @@ function generaPDF() {
     URL.revokeObjectURL(url);
 }
 
-// Funzione per inviare il preventivo via WhatsApp
+// Invia il preventivo via WhatsApp
 function inviaWhatsApp() {
     const testo = generaContenuto();
     const encodedText = encodeURIComponent(testo);
@@ -119,7 +137,7 @@ function inviaWhatsApp() {
     window.open(whatsappUrl, "_blank");
 }
 
-// Salva un preventivo nel LocalStorage
+// Salvataggio dei preventivi
 function salvaPreventivo() {
     let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
     const nomePreventivo = prompt("Inserisci il nome del preventivo:");
@@ -154,26 +172,4 @@ function aggiornaListaPreventivi() {
     });
 
     select.disabled = preventivi.length === 0;
-}
-
-// Richiama un preventivo salvato
-function richiamaPreventivo() {
-    const select = document.getElementById("listaPreventivi");
-    const index = select.value;
-    if (index === "") return;
-
-    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
-    alert("Contenuto del preventivo:\n\n" + preventivi[index].dati);
-}
-
-// Elimina i preventivi selezionati
-function eliminaPreventiviSelezionati() {
-    const select = document.getElementById("listaPreventivi");
-    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
-
-    const selezionati = Array.from(select.selectedOptions).map(option => parseInt(option.value));
-    preventivi = preventivi.filter((_, index) => !selezionati.includes(index));
-
-    localStorage.setItem("preventivi", JSON.stringify(preventivi));
-    aggiornaListaPreventivi();
 }
