@@ -123,27 +123,27 @@ function generaContenuto() {
     contenuto += `Cell/Tel.: ${document.getElementById("telefono").value}\n`;
     contenuto += `Email: ${document.getElementById("email").value}\n\n`;
 
-    // Se il flag "Mostra Codici Articolo" è selezionato, viene utilizzato il formato semplificato
-    if(document.getElementById("mostraCodici").checked) {
+    // Se il flag "Mostra Codici Articolo" è selezionato, utilizza il formato semplificato:
+    if (document.getElementById("mostraCodici").checked) {
         contenuto += "Articoli:\n";
         const articoli = document.querySelectorAll(".articolo");
-        articoli.forEach((articolo, index) => {
+        articoli.forEach(articolo => {
             const codice = articolo.querySelector(".codice") ? articolo.querySelector(".codice").value : "";
             const descrizione = articolo.querySelector(".descrizione") ? articolo.querySelector(".descrizione").value : "";
             const quantita = articolo.querySelector(".quantita") ? articolo.querySelector(".quantita").value : "";
-            contenuto += `Articolo ${index + 1}:\n`;
-            contenuto += `  Codice: ${codice}\n`;
+            // NON viene più visualizzato "Articolo X:"; invece viene sempre visualizzato il codice
+            contenuto += `Codice: ${codice}\n`;
             contenuto += `  Descrizione: ${descrizione}\n`;
             contenuto += `  Quantità: ${quantita}\n\n`;
         });
-        // Aggiunge il totale complessivo e la nota IVA
+        // Totale e nota IVA
         contenuto += document.getElementById("totaleFinale").textContent + "\n";
         contenuto += "Prezzi sono al netto di IVA del 22%.\n";
     } else {
-        // Versione dettagliata (vecchia logica)
+        // Versione dettagliata
         contenuto += "Articoli:\n";
         const articoli = document.querySelectorAll(".articolo");
-        articoli.forEach((articolo, index) => {
+        articoli.forEach(articolo => {
             const codice = articolo.querySelector(".codice") ? articolo.querySelector(".codice").value : "";
             const descrizione = articolo.querySelector(".descrizione") ? articolo.querySelector(".descrizione").value : "";
             const prezzoLordo = articolo.querySelector(".prezzoLordo") ? articolo.querySelector(".prezzoLordo").value : "";
@@ -152,14 +152,12 @@ function generaContenuto() {
             const quantita = articolo.querySelector(".quantita") ? articolo.querySelector(".quantita").value : "";
             const prezzoTotale = articolo.querySelector(".prezzoTotale") ? articolo.querySelector(".prezzoTotale").value : "";
 
-            contenuto += `Articolo ${index + 1}:\n`;
-            if(document.getElementById("mostraCodici").checked) {
-                contenuto += `  Codice: ${codice}\n`;
-            }
+            // Invece di "Articolo X:" viene stampato il codice dell'articolo
+            contenuto += `Codice: ${codice}\n`;
             contenuto += `  Descrizione: ${descrizione}\n`;
             contenuto += `  Prezzo Lordo: ${prezzoLordo}€\n`;
             contenuto += `  Sconto: ${sconto}%\n`;
-            if(document.getElementById("mostraPrezzi").checked) {
+            if (document.getElementById("mostraPrezzi").checked) {
                 contenuto += `  Prezzo Netto: ${prezzoNetto}€\n`;
             }
             contenuto += `  Quantità: ${quantita}\n`;
@@ -168,10 +166,10 @@ function generaContenuto() {
 
         // Totali
         contenuto += document.getElementById("totaleArticoli").textContent + "\n";
-        if(document.getElementById("mostraMarginalita").checked) {
+        if (document.getElementById("mostraMarginalita").checked) {
             contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
         }
-        if(document.getElementById("mostraTrasporto").checked) {
+        if (document.getElementById("mostraTrasporto").checked) {
             contenuto += document.getElementById("totaleFinale").textContent + "\n";
         }
 
