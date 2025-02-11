@@ -69,9 +69,57 @@ function aggiornaTotaleGenerale() {
     });
 
     document.getElementById("totaleArticoli").textContent = `Totale Articoli: ${totaleGenerale.toFixed(2)}€`;
+    calcolaMarginalita();
 }
 
-// Salva un preventivo nel LocalStorage e aggiorna la lista
+// Calcola il totale con marginalità
+function calcolaMarginalita() {
+    const totaleArticoli = parseFloat(document.getElementById("totaleArticoli").textContent.replace(/[^0-9.,]/g, "")) || 0;
+    const margine = parseFloat(document.getElementById("margine").value) || 0;
+
+    let nuovoTotale = totaleArticoli;
+    if (margine > 0) {
+        nuovoTotale = totaleArticoli / (1 - margine / 100);
+    }
+    
+    document.getElementById("totaleMarginalita").textContent = `Nuovo Totale Articoli: ${nuovoTotale.toFixed(2)}€`;
+    calcolaTotaleFinale();
+}
+
+// Calcola il totale finale considerando trasporto e installazione
+function calcolaTotaleFinale() {
+    const nuovoTotale = parseFloat(document.getElementById("totaleMarginalita").textContent.replace(/[^0-9.,]/g, "")) || 0;
+    const costoTrasporto = parseFloat(document.getElementById("costoTrasporto").value) || 0;
+    const costoInstallazione = parseFloat(document.getElementById("costoInstallazione").value) || 0;
+
+    const totaleFinale = nuovoTotale + costoTrasporto + costoInstallazione;
+    document.getElementById("totaleFinale").textContent = `Totale Finale: ${totaleFinale.toFixed(2)}€`;
+}
+
+// Funzione per generare il PDF
+function generaPDF() {
+    const contenuto = generaContenuto();
+    const blob = new Blob([contenuto], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "preventivo.txt";
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
+
+// Funzione per inviare il preventivo via WhatsApp
+function inviaWhatsApp() {
+    const testo = generaContenuto();
+    const encodedText = encodeURIComponent(testo);
+    const whatsappUrl = `https://wa.me/?text=${encodedText}`;
+
+    window.open(whatsappUrl, "_blank");
+}
+
+// Funzione per salvare un preventivo nel LocalStorage e aggiornarne la lista
 function salvaPreventivo() {
     let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
     const nomePreventivo = prompt("Inserisci il nome del preventivo:");
@@ -128,45 +176,4 @@ function eliminaPreventiviSelezionati() {
 
     localStorage.setItem("preventivi", JSON.stringify(preventivi));
     aggiornaListaPreventivi();
-}
-
-// Funzione per generare il contenuto del PDF e WhatsApp
-function generaContenuto() {
-    let contenuto = "Preventivo FastSale\n\n";
-    const dataOggi = new Date().toLocaleDateString("it-IT");
-
-    contenuto += `Data: ${dataOggi}\n\n`;
-    contenuto += `Cliente: ${document.getElementById("nomeAzienda").value}\n`;
-    contenuto += `Città: ${document.getElementById("citta").value}\n`;
-    contenuto += `Indirizzo: ${document.getElementById("indirizzo").value}\n`;
-    contenuto += `Telefono: ${document.getElementById("telefono").value}\n\n`;
-
-    contenuto += document.getElementById("totaleArticoli").textContent + "\n";
-    contenuto += `Modalità di Pagamento: ${document.getElementById("modalitaPagamento").value}\n\n`;
-    contenuto += "I PREZZI SONO AL NETTO DI IVA DEL 22%.";
-
-    return contenuto;
-}
-
-// Funzione per generare il PDF
-function generaPDF() {
-    const contenuto = generaContenuto();
-    const blob = new Blob([contenuto], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "preventivo.txt";
-    a.click();
-
-    URL.revokeObjectURL(url);
-}
-
-// Funzione per inviare il preventivo via WhatsApp
-function inviaWhatsApp() {
-    const testo = generaContenuto();
-    const encodedText = encodeURIComponent(testo);
-    const whatsappUrl = `https://wa.me/?text=${encodedText}`;
-
-    window.open(whatsappUrl, "_blank");
 }
