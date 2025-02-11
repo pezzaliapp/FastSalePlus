@@ -3,12 +3,14 @@ document.addEventListener("DOMContentLoaded", function () {
     aggiornaTotaleGenerale();
 });
 
-// Funzione per caricare i preventivi salvati (richiama l'aggiornamento della lista)
+// Carica i preventivi salvati aggiornando la lista
 function caricaPreventiviSalvati() {
     aggiornaListaPreventivi();
 }
 
-// Funzione per aggiungere un articolo
+// FUNZIONI SUI ARTICOLI
+
+// Aggiunge un nuovo articolo (vuoto)
 function aggiungiArticolo() {
     const container = document.getElementById("articoli-container");
     const idUnico = Date.now();
@@ -23,7 +25,7 @@ function aggiungiArticolo() {
             <label>Prezzo Lordo (€): <input type="number" class="prezzoLordo" step="0.01" oninput="calcolaPrezzo(this)"></label>
             <label>Sconto (%): <input type="number" class="sconto" step="0.01" oninput="calcolaPrezzo(this)"></label>
             <label>Prezzo Netto (€): <input type="text" class="prezzoNetto" readonly></label>
-            <label>Quantità: <input type="number" class="quantita" step="1" oninput="calcolaPrezzo(this)"></label>
+            <label>Quantità: <input type="number" class="quantita" step="1" value="1" oninput="calcolaPrezzo(this)"></label>
             <label>Prezzo Totale (€): <input type="text" class="prezzoTotale" readonly></label>
             <button onclick="salvaArticolo(${idUnico})">Salva</button>
             <button onclick="rimuoviArticolo(this)">Rimuovi</button>
@@ -33,24 +35,24 @@ function aggiungiArticolo() {
     container.appendChild(div);
 }
 
-// Aggiorna il nome dell'articolo nel menu a tendina
+// Aggiorna il titolo (summary) del blocco articolo in base al valore del campo Codice
 function aggiornaTitolo(input, id) {
     const summary = document.querySelector(`#articolo-${id} summary`);
     summary.textContent = input.value || "Nuovo Articolo";
 }
 
-// Salva un articolo (chiude il dettaglio)
+// Chiude il dettaglio di un articolo (salvataggio visivo)
 function salvaArticolo(id) {
     document.getElementById(`articolo-${id}`).open = false;
 }
 
-// Rimuove un articolo e aggiorna il totale
+// Rimuove un articolo e aggiorna i totali
 function rimuoviArticolo(btn) {
     btn.parentElement.parentElement.remove();
     aggiornaTotaleGenerale();
 }
 
-// Calcola il prezzo netto e totale per l'articolo modificato
+// Calcola i prezzi per un articolo
 function calcolaPrezzo(input) {
     const row = input.closest(".articolo");
     const prezzoLordo = parseFloat(row.querySelector(".prezzoLordo").value) || 0;
@@ -66,7 +68,7 @@ function calcolaPrezzo(input) {
     aggiornaTotaleGenerale();
 }
 
-// Aggiorna il totale degli articoli presenti
+// Aggiorna il totale degli articoli
 function aggiornaTotaleGenerale() {
     let totaleGenerale = 0;
     document.querySelectorAll(".prezzoTotale").forEach(input => {
@@ -77,7 +79,7 @@ function aggiornaTotaleGenerale() {
     calcolaMarginalita();
 }
 
-// Calcola il totale considerando la marginalità inserita
+// Calcola il totale considerando la marginalità
 function calcolaMarginalita() {
     const totaleArticoliText = document.getElementById("totaleArticoli").textContent;
     const totaleArticoli = parseFloat(totaleArticoliText.replace(/[^0-9.,]/g, "").replace(',', '.')) || 0;
@@ -92,7 +94,7 @@ function calcolaMarginalita() {
     calcolaTotaleFinale();
 }
 
-// Calcola il totale finale aggiungendo trasporto e installazione
+// Calcola il totale finale (includendo trasporto e installazione)
 function calcolaTotaleFinale() {
     const totaleMarginalitaText = document.getElementById("totaleMarginalita").textContent;
     const nuovoTotale = parseFloat(totaleMarginalitaText.replace(/[^0-9.,]/g, "").replace(',', '.')) || 0;
@@ -103,11 +105,12 @@ function calcolaTotaleFinale() {
     document.getElementById("totaleFinale").textContent = `Totale Finale: ${totaleFinale.toFixed(2)}€`;
 }
 
-// Funzione per generare il contenuto completo del preventivo
+// FUNZIONI DI GENERAZIONE DEL CONTENUTO (PDF/WhatsApp)
+// (Le modifiche richieste per il formato della stampa sono già presenti in generaContenuto())
 function generaContenuto() {
     let contenuto = "";
     
-    // Aggiunge la data corrente (formattata come gg/mm/aaaa)
+    // Data corrente
     let oggi = new Date();
     let giorno = oggi.getDate().toString().padStart(2, "0");
     let mese = (oggi.getMonth() + 1).toString().padStart(2, "0");
@@ -123,7 +126,7 @@ function generaContenuto() {
     contenuto += `Cell/Tel.: ${document.getElementById("telefono").value}\n`;
     contenuto += `Email: ${document.getElementById("email").value}\n\n`;
 
-    // Se il flag "Mostra Codici Articolo" è selezionato, utilizza il formato semplificato:
+    // Se il flag "Mostra Codici Articolo" è selezionato, viene usato il formato semplificato
     if (document.getElementById("mostraCodici").checked) {
         contenuto += "Articoli:\n";
         const articoli = document.querySelectorAll(".articolo");
@@ -131,12 +134,10 @@ function generaContenuto() {
             const codice = articolo.querySelector(".codice") ? articolo.querySelector(".codice").value : "";
             const descrizione = articolo.querySelector(".descrizione") ? articolo.querySelector(".descrizione").value : "";
             const quantita = articolo.querySelector(".quantita") ? articolo.querySelector(".quantita").value : "";
-            // NON viene più visualizzato "Articolo X:"; invece viene sempre visualizzato il codice
             contenuto += `Codice: ${codice}\n`;
             contenuto += `  Descrizione: ${descrizione}\n`;
             contenuto += `  Quantità: ${quantita}\n\n`;
         });
-        // Totale e nota IVA
         contenuto += document.getElementById("totaleFinale").textContent + "\n";
         contenuto += "Prezzi sono al netto di IVA del 22%.\n";
     } else {
@@ -152,7 +153,6 @@ function generaContenuto() {
             const quantita = articolo.querySelector(".quantita") ? articolo.querySelector(".quantita").value : "";
             const prezzoTotale = articolo.querySelector(".prezzoTotale") ? articolo.querySelector(".prezzoTotale").value : "";
 
-            // Invece di "Articolo X:" viene stampato il codice dell'articolo
             contenuto += `Codice: ${codice}\n`;
             contenuto += `  Descrizione: ${descrizione}\n`;
             contenuto += `  Prezzo Lordo: ${prezzoLordo}€\n`;
@@ -164,7 +164,6 @@ function generaContenuto() {
             contenuto += `  Prezzo Totale: ${prezzoTotale}€\n\n`;
         });
 
-        // Totali
         contenuto += document.getElementById("totaleArticoli").textContent + "\n";
         if (document.getElementById("mostraMarginalita").checked) {
             contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
@@ -173,14 +172,13 @@ function generaContenuto() {
             contenuto += document.getElementById("totaleFinale").textContent + "\n";
         }
 
-        // Modalità di Pagamento
         contenuto += "\nModalità di Pagamento: " + document.getElementById("modalitaPagamento").value + "\n";
     }
     
     return contenuto;
 }
 
-// Funzione per generare il PDF (in questo caso un file di testo)
+// Genera un file di testo (PDF simulato) per il preventivo
 function generaPDF() {
     const contenuto = generaContenuto();
     const blob = new Blob([contenuto], { type: "text/plain" });
@@ -194,7 +192,7 @@ function generaPDF() {
     URL.revokeObjectURL(url);
 }
 
-// Funzione per inviare il preventivo via WhatsApp
+// Invia il preventivo via WhatsApp
 function inviaWhatsApp() {
     const testo = generaContenuto();
     const encodedText = encodeURIComponent(testo);
@@ -203,33 +201,142 @@ function inviaWhatsApp() {
     window.open(whatsappUrl, "_blank");
 }
 
-// Funzione per salvare un preventivo nel localStorage
+// FUNZIONI DI SALVATAGGIO E RICHIAMO DEL PREVENTIVO
+
+// Raccoglie tutti i dati del form in un oggetto
+function getPreventivoData() {
+    const datiCliente = {
+        nomeAzienda: document.getElementById("nomeAzienda").value,
+        citta: document.getElementById("citta").value,
+        indirizzo: document.getElementById("indirizzo").value,
+        telefono: document.getElementById("telefono").value,
+        email: document.getElementById("email").value,
+    };
+
+    const articoli = [];
+    const articoliElements = document.querySelectorAll(".articolo");
+    articoliElements.forEach(articolo => {
+        const codice = articolo.querySelector(".codice") ? articolo.querySelector(".codice").value : "";
+        const descrizione = articolo.querySelector(".descrizione") ? articolo.querySelector(".descrizione").value : "";
+        const prezzoLordo = articolo.querySelector(".prezzoLordo") ? articolo.querySelector(".prezzoLordo").value : "";
+        const sconto = articolo.querySelector(".sconto") ? articolo.querySelector(".sconto").value : "";
+        const prezzoNetto = articolo.querySelector(".prezzoNetto") ? articolo.querySelector(".prezzoNetto").value : "";
+        const quantita = articolo.querySelector(".quantita") ? articolo.querySelector(".quantita").value : "";
+        const prezzoTotale = articolo.querySelector(".prezzoTotale") ? articolo.querySelector(".prezzoTotale").value : "";
+        articoli.push({
+            codice,
+            descrizione,
+            prezzoLordo,
+            sconto,
+            prezzoNetto,
+            quantita,
+            prezzoTotale
+        });
+    });
+
+    const checkboxes = {
+        mostraCodici: document.getElementById("mostraCodici").checked,
+        mostraPrezzi: document.getElementById("mostraPrezzi").checked,
+        mostraMarginalita: document.getElementById("mostraMarginalita").checked,
+        mostraTrasporto: document.getElementById("mostraTrasporto").checked,
+    };
+
+    const preventivo = {
+        datiCliente: datiCliente,
+        articoli: articoli,
+        margine: document.getElementById("margine").value,
+        costoTrasporto: document.getElementById("costoTrasporto").value,
+        costoInstallazione: document.getElementById("costoInstallazione").value,
+        modalitaPagamento: document.getElementById("modalitaPagamento").value,
+        checkboxes: checkboxes
+    };
+
+    return preventivo;
+}
+
+// Salva il preventivo nel localStorage (l'utente inserisce un nome, che può essere nuovo o uguale a uno già salvato)
 function salvaPreventivo() {
-    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
     const nomePreventivo = prompt("Inserisci il nome del preventivo:");
     if (!nomePreventivo) return;
 
-    const preventivo = {
-        nome: nomePreventivo,
-        dati: generaContenuto()
-    };
+    const preventivoData = getPreventivoData();
+    preventivoData.nome = nomePreventivo;
 
-    preventivi.push(preventivo);
+    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
+    preventivi.push(preventivoData);
     localStorage.setItem("preventivi", JSON.stringify(preventivi));
     aggiornaListaPreventivi();
 }
 
-// Funzione per richiamare un preventivo salvato
+// Popola il form con i dati del preventivo salvato, in modo che l'utente possa rivederli e modificarli
+function popolaForm(data) {
+    // Dati Cliente
+    document.getElementById("nomeAzienda").value = data.datiCliente.nomeAzienda;
+    document.getElementById("citta").value = data.datiCliente.citta;
+    document.getElementById("indirizzo").value = data.datiCliente.indirizzo;
+    document.getElementById("telefono").value = data.datiCliente.telefono;
+    document.getElementById("email").value = data.datiCliente.email;
+    
+    // Ricarica gli articoli: prima svuota il container...
+    const container = document.getElementById("articoli-container");
+    container.innerHTML = "";
+    // ... poi aggiunge ciascun articolo con i dati salvati
+    data.articoli.forEach(article => {
+        aggiungiArticoloConDati(article);
+    });
+    
+    // Altri campi
+    document.getElementById("margine").value = data.margine;
+    document.getElementById("costoTrasporto").value = data.costoTrasporto;
+    document.getElementById("costoInstallazione").value = data.costoInstallazione;
+    document.getElementById("modalitaPagamento").value = data.modalitaPagamento;
+    
+    // Imposta lo stato dei checkbox
+    document.getElementById("mostraCodici").checked = data.checkboxes.mostraCodici;
+    document.getElementById("mostraPrezzi").checked = data.checkboxes.mostraPrezzi;
+    document.getElementById("mostraMarginalita").checked = data.checkboxes.mostraMarginalita;
+    document.getElementById("mostraTrasporto").checked = data.checkboxes.mostraTrasporto;
+    
+    aggiornaTotaleGenerale();
+}
+
+// Crea un nuovo blocco articolo già precompilato con i dati passati
+function aggiungiArticoloConDati(dati) {
+    const container = document.getElementById("articoli-container");
+    const idUnico = Date.now() + Math.floor(Math.random() * 1000);
+    
+    const div = document.createElement("div");
+    div.classList.add("articolo");
+    div.innerHTML = `
+        <details id="articolo-${idUnico}" open>
+            <summary>${dati.codice || "Nuovo Articolo"}</summary>
+            <label>Codice: <input type="text" class="codice" value="${dati.codice || ""}" oninput="aggiornaTitolo(this, ${idUnico})"></label>
+            <label>Descrizione: <input type="text" class="descrizione" value="${dati.descrizione || ""}"></label>
+            <label>Prezzo Lordo (€): <input type="number" class="prezzoLordo" step="0.01" value="${dati.prezzoLordo || ""}" oninput="calcolaPrezzo(this)"></label>
+            <label>Sconto (%): <input type="number" class="sconto" step="0.01" value="${dati.sconto || ""}" oninput="calcolaPrezzo(this)"></label>
+            <label>Prezzo Netto (€): <input type="text" class="prezzoNetto" value="${dati.prezzoNetto || ""}" readonly></label>
+            <label>Quantità: <input type="number" class="quantita" step="1" value="${dati.quantita || 1}" oninput="calcolaPrezzo(this)"></label>
+            <label>Prezzo Totale (€): <input type="text" class="prezzoTotale" value="${dati.prezzoTotale || ""}" readonly></label>
+            <button onclick="salvaArticolo(${idUnico})">Salva</button>
+            <button onclick="rimuoviArticolo(this)">Rimuovi</button>
+        </details>
+    `;
+    
+    container.appendChild(div);
+}
+
+// Richiama (carica) un preventivo salvato nel form per poterlo modificare
 function richiamaPreventivo() {
     const select = document.getElementById("listaPreventivi");
     const index = select.value;
     if (index === "") return;
 
     let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
-    alert("Contenuto del preventivo:\n\n" + preventivi[index].dati);
+    const preventivo = preventivi[index];
+    popolaForm(preventivo);
 }
 
-// Funzione per eliminare i preventivi selezionati
+// Elimina i preventivi selezionati dalla lista
 function eliminaPreventiviSelezionati() {
     const select = document.getElementById("listaPreventivi");
     let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
@@ -241,7 +348,7 @@ function eliminaPreventiviSelezionati() {
     aggiornaListaPreventivi();
 }
 
-// Funzione per aggiornare la lista dei preventivi salvati
+// Aggiorna la lista dei preventivi salvati (nel select)
 function aggiornaListaPreventivi() {
     const select = document.getElementById("listaPreventivi");
     select.innerHTML = "";
