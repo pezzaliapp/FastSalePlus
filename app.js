@@ -11,7 +11,7 @@ function aggiungiArticolo() {
     const div = document.createElement("div");
     div.classList.add("articolo");
     div.innerHTML = `
-        <details id="articolo-${idUnico}">
+        <details id="articolo-${idUnico}" open>
             <summary>Nuovo Articolo</summary>
             <label>Codice: <input type="text" class="codice" oninput="aggiornaTitolo(this, ${idUnico})"></label>
             <label>Descrizione: <input type="text" class="descrizione"></label>
@@ -20,6 +20,7 @@ function aggiungiArticolo() {
             <label>Prezzo Netto (€): <input type="text" class="prezzoNetto" readonly></label>
             <label>Quantità: <input type="number" class="quantita" step="1" oninput="calcolaPrezzo(this)"></label>
             <label>Prezzo Totale (€): <input type="text" class="prezzoTotale" readonly></label>
+            <button onclick="salvaArticolo(${idUnico})">Salva</button>
             <button onclick="rimuoviArticolo(this)">Rimuovi</button>
         </details>
     `;
@@ -27,10 +28,15 @@ function aggiungiArticolo() {
     container.appendChild(div);
 }
 
-// Aggiorna il nome dell'articolo con il codice inserito
+// Funzione per aggiornare il nome dell'articolo con il codice inserito
 function aggiornaTitolo(input, id) {
     const summary = document.querySelector(`#articolo-${id} summary`);
     summary.textContent = input.value || "Nuovo Articolo";
+}
+
+// Salva un articolo e chiude il menu a tendina
+function salvaArticolo(id) {
+    document.getElementById(`articolo-${id}`).open = false;
 }
 
 // Rimuove un articolo e aggiorna i dati
