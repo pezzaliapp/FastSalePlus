@@ -96,7 +96,7 @@ function calcolaTotaleFinale() {
     document.getElementById("totaleFinale").textContent = `Totale Finale: ${totaleFinale.toFixed(2)}€`;
 }
 
-// Funzione per generare il PDF con i flag selezionati
+// Genera il PDF con i flag selezionati
 function generaPDF() {
     const contenuto = generaContenuto();
     const blob = new Blob([contenuto], { type: "text/plain" });
@@ -110,7 +110,7 @@ function generaPDF() {
     URL.revokeObjectURL(url);
 }
 
-// Funzione per inviare il preventivo via WhatsApp con i flag selezionati
+// Invia il preventivo via WhatsApp rispettando i flag attivi
 function inviaWhatsApp() {
     const testo = generaContenuto();
     const encodedText = encodeURIComponent(testo);
@@ -119,7 +119,7 @@ function inviaWhatsApp() {
     window.open(whatsappUrl, "_blank");
 }
 
-// Funzione per salvare un preventivo
+// Funzione per salvare un preventivo nel LocalStorage
 function salvaPreventivo() {
     let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
     const nomePreventivo = prompt("Inserisci il nome del preventivo:");
@@ -135,7 +135,7 @@ function salvaPreventivo() {
     aggiornaListaPreventivi();
 }
 
-// Funzione per richiamare un preventivo
+// Funzione per richiamare un preventivo salvato
 function richiamaPreventivo() {
     const select = document.getElementById("listaPreventivi");
     const index = select.value;
@@ -145,7 +145,7 @@ function richiamaPreventivo() {
     alert("Contenuto del preventivo:\n\n" + preventivi[index].dati);
 }
 
-// Funzione per eliminare preventivi selezionati
+// Funzione per eliminare i preventivi selezionati
 function eliminaPreventiviSelezionati() {
     const select = document.getElementById("listaPreventivi");
     let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
