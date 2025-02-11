@@ -96,25 +96,7 @@ function calcolaTotaleFinale() {
     document.getElementById("totaleFinale").textContent = `Totale Finale: ${totaleFinale.toFixed(2)}€`;
 }
 
-// Genera il contenuto del preventivo
-function generaContenuto() {
-    let contenuto = "Preventivo FastSale\n\n";
-    const dataOggi = new Date().toLocaleDateString("it-IT");
-
-    contenuto += `Data: ${dataOggi}\n\n`;
-    contenuto += `Cliente: ${document.getElementById("nomeAzienda").value}\n`;
-    contenuto += `Città: ${document.getElementById("citta").value}\n`;
-    contenuto += `Indirizzo: ${document.getElementById("indirizzo").value}\n`;
-    contenuto += `Telefono: ${document.getElementById("telefono").value}\n\n`;
-
-    contenuto += document.getElementById("totaleFinale").textContent + "\n";
-    contenuto += `Modalità di Pagamento: ${document.getElementById("modalitaPagamento").value}\n\n`;
-    contenuto += "I PREZZI SONO AL NETTO DI IVA DEL 22%.";
-
-    return contenuto;
-}
-
-// Genera il PDF
+// Funzione per generare il PDF con i flag selezionati
 function generaPDF() {
     const contenuto = generaContenuto();
     const blob = new Blob([contenuto], { type: "text/plain" });
@@ -128,7 +110,7 @@ function generaPDF() {
     URL.revokeObjectURL(url);
 }
 
-// Invia il preventivo via WhatsApp
+// Funzione per inviare il preventivo via WhatsApp con i flag selezionati
 function inviaWhatsApp() {
     const testo = generaContenuto();
     const encodedText = encodeURIComponent(testo);
@@ -137,7 +119,7 @@ function inviaWhatsApp() {
     window.open(whatsappUrl, "_blank");
 }
 
-// Salvataggio dei preventivi
+// Funzione per salvare un preventivo
 function salvaPreventivo() {
     let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
     const nomePreventivo = prompt("Inserisci il nome del preventivo:");
@@ -153,12 +135,29 @@ function salvaPreventivo() {
     aggiornaListaPreventivi();
 }
 
-// Carica la lista dei preventivi salvati
-function caricaPreventiviSalvati() {
+// Funzione per richiamare un preventivo
+function richiamaPreventivo() {
+    const select = document.getElementById("listaPreventivi");
+    const index = select.value;
+    if (index === "") return;
+
+    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
+    alert("Contenuto del preventivo:\n\n" + preventivi[index].dati);
+}
+
+// Funzione per eliminare preventivi selezionati
+function eliminaPreventiviSelezionati() {
+    const select = document.getElementById("listaPreventivi");
+    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
+
+    const selezionati = Array.from(select.selectedOptions).map(option => parseInt(option.value));
+    preventivi = preventivi.filter((_, index) => !selezionati.includes(index));
+
+    localStorage.setItem("preventivi", JSON.stringify(preventivi));
     aggiornaListaPreventivi();
 }
 
-// Aggiorna la lista dei preventivi salvati
+// Funzione per aggiornare la lista dei preventivi salvati
 function aggiornaListaPreventivi() {
     const select = document.getElementById("listaPreventivi");
     select.innerHTML = "";
