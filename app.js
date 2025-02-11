@@ -296,7 +296,7 @@ function generaContenuto() {
     contenuto += `Cell/Tel.: ${document.getElementById("telefono").value}\n`;
     contenuto += `Email: ${document.getElementById("email").value}\n\n`;
 
-    // Se è attivo il flag "Mostra Codici Articolo", utilizza il formato semplificato
+    // Se il flag "Mostra Codici Articolo" è attivo, utilizza il formato semplificato
     if (document.getElementById("mostraCodici").checked) {
         contenuto += "Articoli:\n";
         const articoli = document.querySelectorAll(".articolo");
@@ -308,7 +308,7 @@ function generaContenuto() {
             contenuto += `  Descrizione: ${descrizione}\n`;
             contenuto += `  Quantità: ${quantita}\n\n`;
         });
-        // In modalità semplificata mostra Totale Finale e la nota IVA
+        // In modalità semplificata mostra il Totale Finale e la nota IVA
         contenuto += document.getElementById("totaleFinale").textContent + "\n";
         contenuto += "Prezzi sono al netto di IVA del 22%.\n";
     } else {
@@ -335,13 +335,14 @@ function generaContenuto() {
             contenuto += `  Prezzo Totale: ${prezzoTotale}€\n\n`;
         });
         
-        // Se nessuno dei flag "Mostra Prezzi", "Mostra Marginalità" e "Trasporto e Installazione Inclusi" è selezionato
+        // Se nessuno dei flag "Mostra Prezzi", "Mostra Marginalità" e "Trasporto e Installazione Inclusi" è selezionato,
+        // viene aggiunto prima il margine inserito, poi il Totale Articoli, il Nuovo Totale Articoli, Trasporto, Installazione e Totale Finale.
         if (
             !document.getElementById("mostraPrezzi").checked &&
             !document.getElementById("mostraMarginalita").checked &&
             !document.getElementById("mostraTrasporto").checked
         ) {
-            // Visualizza prima il Totale Articoli, poi il Nuovo Totale Articoli, Trasporto, Installazione e Totale Finale
+            contenuto += "Margine: " + (document.getElementById("margine").value || "0") + "%\n";
             contenuto += document.getElementById("totaleArticoli").textContent + "\n";
             contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
             contenuto += "Trasporto: " + (parseFloat(document.getElementById("costoTrasporto").value) || 0).toFixed(2) + "€\n";
