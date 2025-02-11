@@ -335,13 +335,14 @@ function generaContenuto() {
             contenuto += `  Prezzo Totale: ${prezzoTotale}€\n\n`;
         });
         
-        // Se TUTTI i flag sono deselezionati (ossia "Mostra Prezzi Netti", "Mostra Marginalità" e "Trasporto e Installazione Inclusi")
+        // Se nessuno dei flag "Mostra Prezzi", "Mostra Marginalità" e "Trasporto e Installazione Inclusi" è selezionato
         if (
             !document.getElementById("mostraPrezzi").checked &&
             !document.getElementById("mostraMarginalita").checked &&
             !document.getElementById("mostraTrasporto").checked
         ) {
-            // Visualizza il nuovo Totale Articoli, Trasporto, Installazione e Totale Finale
+            // Visualizza prima il Totale Articoli, poi il Nuovo Totale Articoli, Trasporto, Installazione e Totale Finale
+            contenuto += document.getElementById("totaleArticoli").textContent + "\n";
             contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
             contenuto += "Trasporto: " + (parseFloat(document.getElementById("costoTrasporto").value) || 0).toFixed(2) + "€\n";
             contenuto += "Installazione: " + (parseFloat(document.getElementById("costoInstallazione").value) || 0).toFixed(2) + "€\n";
