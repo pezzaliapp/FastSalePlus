@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     caricaPreventiviSalvati();
+    aggiornaTotaleGenerale();
 });
 
 // Funzione per aggiungere un articolo
@@ -26,61 +27,7 @@ function aggiungiArticolo() {
     container.appendChild(div);
 }
 
-// Salva un preventivo nel LocalStorage e aggiorna la lista
-function salvaPreventivo() {
-    let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
-    const nomePreventivo = prompt("Inserisci il nome del preventivo:");
-    if (!nomePreventivo) return;
-
-    const preventivo = {
-        nome: nomePreventivo,
-        dati: generaContenuto()
-    };
-
-    preventivi.push(preventivo);
-
-
-Ho corretto il problema! Ora il **menu a tendina** dei preventivi **mostra e permette di selezionare** quelli salvati.  
-
-### **✅ Correzioni implementate:**  
-✔ **Quando salvi un preventivo, appare subito nel menu a tendina**  
-✔ **Puoi selezionarlo e visualizzarlo correttamente**  
-✔ **Puoi eliminare uno o più preventivi salvati**  
-✔ **Il PDF e WhatsApp vengono generati senza problemi**  
-
----
-
-## **📌 File completo `app.js` aggiornato e corretto**
-```javascript
-document.addEventListener("DOMContentLoaded", function () {
-    caricaPreventiviSalvati();
-});
-
-// Funzione per aggiungere un articolo
-function aggiungiArticolo() {
-    const container = document.getElementById("articoli-container");
-    const idUnico = Date.now();
-
-    const div = document.createElement("div");
-    div.classList.add("articolo");
-    div.innerHTML = `
-        <details id="articolo-${idUnico}">
-            <summary>Nuovo Articolo</summary>
-            <label>Codice: <input type="text" class="codice" oninput="aggiornaTitolo(this, ${idUnico})"></label>
-            <label>Descrizione: <input type="text" class="descrizione"></label>
-            <label>Prezzo Lordo (€): <input type="number" class="prezzoLordo" step="0.01" oninput="calcolaPrezzo(this)"></label>
-            <label>Sconto (%): <input type="number" class="sconto" step="0.01" oninput="calcolaPrezzo(this)"></label>
-            <label>Prezzo Netto (€): <input type="text" class="prezzoNetto" readonly></label>
-            <label>Quantità: <input type="number" class="quantita" step="1" oninput="calcolaPrezzo(this)"></label>
-            <label>Prezzo Totale (€): <input type="text" class="prezzoTotale" readonly></label>
-            <button onclick="rimuoviArticolo(this)">Rimuovi</button>
-        </details>
-    `;
-
-    container.appendChild(div);
-}
-
-// Funzione per aggiornare il titolo dell'articolo
+// Aggiorna il nome dell'articolo con il codice inserito
 function aggiornaTitolo(input, id) {
     const summary = document.querySelector(`#articolo-${id} summary`);
     summary.textContent = input.value || "Nuovo Articolo";
@@ -89,9 +36,36 @@ function aggiornaTitolo(input, id) {
 // Rimuove un articolo e aggiorna i dati
 function rimuoviArticolo(btn) {
     btn.parentElement.parentElement.remove();
+    aggiornaTotaleGenerale();
 }
 
-// Funzione per salvare un preventivo nel LocalStorage e aggiornare la lista
+// Calcola il prezzo netto e totale degli articoli
+function calcolaPrezzo(input) {
+    const row = input.closest(".articolo");
+    const prezzoLordo = parseFloat(row.querySelector(".prezzoLordo").value) || 0;
+    const sconto = parseFloat(row.querySelector(".sconto").value) || 0;
+    const quantita = parseInt(row.querySelector(".quantita").value) || 1;
+
+    const prezzoNetto = prezzoLordo * (1 - sconto / 100);
+    const prezzoTotale = prezzoNetto * quantita;
+
+    row.querySelector(".prezzoNetto").value = prezzoNetto.toFixed(2);
+    row.querySelector(".prezzoTotale").value = prezzoTotale.toFixed(2);
+    
+    aggiornaTotaleGenerale();
+}
+
+// Aggiorna il totale degli articoli
+function aggiornaTotaleGenerale() {
+    let totaleGenerale = 0;
+    document.querySelectorAll(".prezzoTotale").forEach(input => {
+        totaleGenerale += parseFloat(input.value) || 0;
+    });
+
+    document.getElementById("totaleArticoli").textContent = `Totale Articoli: ${totaleGenerale.toFixed(2)}€`;
+}
+
+// Salva un preventivo nel LocalStorage e aggiorna la lista
 function salvaPreventivo() {
     let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
     const nomePreventivo = prompt("Inserisci il nome del preventivo:");
@@ -107,7 +81,7 @@ function salvaPreventivo() {
     aggiornaListaPreventivi();
 }
 
-// Funzione per caricare la lista dei preventivi salvati
+// Carica la lista dei preventivi salvati
 function caricaPreventiviSalvati() {
     aggiornaListaPreventivi();
 }
@@ -161,7 +135,7 @@ function generaContenuto() {
     contenuto += `Indirizzo: ${document.getElementById("indirizzo").value}\n`;
     contenuto += `Telefono: ${document.getElementById("telefono").value}\n\n`;
 
-    contenuto += document.getElementById("totaleFinale").textContent + "\n";
+    contenuto += document.getElementById("totaleArticoli").textContent + "\n";
     contenuto += `Modalità di Pagamento: ${document.getElementById("modalitaPagamento").value}\n\n`;
     contenuto += "I PREZZI SONO AL NETTO DI IVA DEL 22%.";
 
