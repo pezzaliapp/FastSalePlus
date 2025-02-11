@@ -119,7 +119,7 @@ function inviaWhatsApp() {
     window.open(whatsappUrl, "_blank");
 }
 
-// Funzione per salvare un preventivo nel LocalStorage e aggiornarne la lista
+// Salva un preventivo nel LocalStorage e aggiorna la lista
 function salvaPreventivo() {
     let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
     const nomePreventivo = prompt("Inserisci il nome del preventivo:");
