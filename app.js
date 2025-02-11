@@ -119,7 +119,7 @@ function inviaWhatsApp() {
     window.open(whatsappUrl, "_blank");
 }
 
-// Salva un preventivo nel LocalStorage e aggiorna la lista
+// Salva un preventivo nel LocalStorage
 function salvaPreventivo() {
     let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
     const nomePreventivo = prompt("Inserisci il nome del preventivo:");
@@ -140,7 +140,7 @@ function caricaPreventiviSalvati() {
     aggiornaListaPreventivi();
 }
 
-// Funzione per aggiornare la lista dei preventivi salvati
+// Aggiorna la lista dei preventivi salvati
 function aggiornaListaPreventivi() {
     const select = document.getElementById("listaPreventivi");
     select.innerHTML = "";
@@ -156,7 +156,7 @@ function aggiornaListaPreventivi() {
     select.disabled = preventivi.length === 0;
 }
 
-// Funzione per richiamare un preventivo salvato
+// Richiama un preventivo salvato
 function richiamaPreventivo() {
     const select = document.getElementById("listaPreventivi");
     const index = select.value;
@@ -166,7 +166,7 @@ function richiamaPreventivo() {
     alert("Contenuto del preventivo:\n\n" + preventivi[index].dati);
 }
 
-// Funzione per eliminare i preventivi selezionati
+// Elimina i preventivi selezionati
 function eliminaPreventiviSelezionati() {
     const select = document.getElementById("listaPreventivi");
     let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
