@@ -3,90 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FastSale</title>
+    <title>FastSale - Gestione Preventivi</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <script defer src="app.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./service-worker.js')
-                .then(() => console.log("Service Worker registrato con successo."))
-                .catch(error => console.log("Service Worker fallito:", error));
-        }
-    </script>
 </head>
 <body>
-    <header>
-        <h1>FastSale - Preventivi Veloci</h1>
-    </header>
+    <h1>FastSale - Gestione Preventivi</h1>
 
-    <main>
-        <section id="cliente">
-            <h2>Dati Cliente</h2>
-            <label>Nome Azienda: <input type="text" id="nomeAzienda"></label>
-            <label>Città: <input type="text" id="citta"></label>
-            <label>Indirizzo: <input type="text" id="indirizzo"></label>
-            <label>Cell/Tel: <input type="text" id="telefono"></label>
-            <label>Email (opzionale): <input type="email" id="email"></label>
-        </section>
+    <!-- Dati Cliente -->
+    <fieldset>
+        <legend>Dati Cliente</legend>
+        <label>Nome Azienda: <input type="text" id="nomeAzienda"></label>
+        <label>Città: <input type="text" id="citta"></label>
+        <label>Indirizzo: <input type="text" id="indirizzo"></label>
+        <label>Cell/Tel.: <input type="text" id="telefono"></label>
+        <label>Email (opzionale): <input type="email" id="email"></label>
+    </fieldset>
 
-        <section id="articoli">
-            <h2>Articoli</h2>
-            <div id="articoli-container"></div>
-            <button onclick="aggiungiArticolo()">Aggiungi Articolo</button>
-            <h2 id="totaleArticoli">Totale Articoli: 0,00€</h2>
-            <h2 id="totaleMarginalita">Nuovo Totale Articoli: 0,00€</h2>
-        </section>
+    <!-- Articoli -->
+    <fieldset>
+        <legend>Articoli</legend>
+        <div id="articoli-container"></div>
+        <button onclick="aggiungiArticolo()">Aggiungi Articolo</button>
+        <p id="totaleArticoli">Totale Articoli: 0,00€</p>
+    </fieldset>
 
-        <section id="marginalita">
-            <h2>Marginalità & Costi</h2>
-            <label>Marginalità (%): <input type="number" id="margine" step="0.01" oninput="calcolaMarginalita()"></label>
-            <label>Trasporto e Installazione incluso o escluso:
-                <select id="trasporto">
-                    <option value="incluso">Incluso</option>
-                    <option value="forfait">Forfait</option>
-                </select>
-                <input type="number" id="costoTrasporto" step="0.01" placeholder="€" oninput="calcolaTotaleFinale()">
-            </label>
-            <label>Installazione:
-                <select id="installazione">
-                    <option value="incluso">Incluso</option>
-                    <option value="forfait">Forfait</option>
-                </select>
-                <input type="number" id="costoInstallazione" step="0.01" placeholder="€" oninput="calcolaTotaleFinale()">
-            </label>
-        </section>
+    <!-- Marginalità -->
+    <fieldset>
+        <legend>Marginalità</legend>
+        <label>Marginalità (%): <input type="number" id="margine" step="0.01" oninput="calcolaMarginalita()"></label>
+        <p id="totaleMarginalita">Nuovo Totale Articoli: 0,00€</p>
+    </fieldset>
 
-        <h2 id="totaleFinale">Totale Finale: 0,00€</h2>
+    <!-- Costi Aggiuntivi -->
+    <fieldset>
+        <legend>Trasporto e Installazione</legend>
+        <label>Trasporto (€): <input type="number" id="costoTrasporto" step="0.01" oninput="calcolaTotaleFinale()"></label>
+        <label>Installazione (€): <input type="number" id="costoInstallazione" step="0.01" oninput="calcolaTotaleFinale()"></label>
+        <p id="totaleFinale">Totale Finale: 0,00€</p>
+    </fieldset>
 
-        <section id="opzioni">
-            <h2>Opzioni PDF e WhatsApp</h2>
-            <label><input type="checkbox" id="mostraCodici"> Mostra Codici Articolo e Quantità</label>
-            <label><input type="checkbox" id="mostraTrasporto"> Trasporto e Installazione incluso o escluso</label>
-            <label><input type="checkbox" id="mostraCompenso"> Compenso visibile sì o no</label>
-        </section>
+    <!-- Modalità di Pagamento -->
+    <fieldset>
+        <legend>Modalità di Pagamento</legend>
+        <input type="text" id="modalitaPagamento" placeholder="Inserisci la modalità di pagamento">
+    </fieldset>
 
-        <section id="pagamento">
-            <h2>Modalità di Pagamento</h2>
-            <input type="text" id="modalitaPagamento" placeholder="Inserire manualmente">
-        </section>
+    <!-- Opzioni di Output -->
+    <fieldset>
+        <legend>Opzioni Stampa</legend>
+        <label><input type="checkbox" id="mostraCodici"> Mostra Codici Articolo</label>
+        <label><input type="checkbox" id="mostraPrezzi"> Mostra Prezzi Netti</label>
+        <label><input type="checkbox" id="mostraMarginalita"> Mostra Marginalità</label>
+        <label><input type="checkbox" id="mostraTrasporto"> Trasporto e Installazione Inclusi</label>
+        <button onclick="generaPDF()">Genera PDF</button>
+        <button onclick="inviaWhatsApp()">Invia su WhatsApp</button>
+    </fieldset>
 
-        <section id="preventivi">
-            <h2>Gestione Preventivi</h2>
-            <button onclick="salvaPreventivo()">Salva Preventivo</button>
-            <select id="listaPreventivi" multiple></select>
-            <button onclick="richiamaPreventivo()">Richiama Preventivo</button>
-            <button onclick="eliminaPreventiviSelezionati()">Elimina Selezionati</button>
-        </section>
+    <!-- Salvataggio Preventivi -->
+    <fieldset>
+        <legend>Salva/Richiama Preventivi</legend>
+        <button onclick="salvaPreventivo()">Salva Preventivo</button>
+        <select id="listaPreventivi" onchange="richiamaPreventivo()">
+            <option value="">Seleziona un preventivo salvato</option>
+        </select>
+        <button onclick="eliminaPreventiviSelezionati()">Elimina Selezionati</button>
+    </fieldset>
 
-        <section id="azioni">
-            <button onclick="generaPDF()">Genera PDF</button>
-            <button onclick="inviaWhatsApp()">Invia su WhatsApp</button>
-        </section>
-    </main>
-
-    <footer>
-        <p>I PREZZI SONO AL NETTO DI IVA DEL 22%.</p>
-    </footer>
 </body>
 </html>
