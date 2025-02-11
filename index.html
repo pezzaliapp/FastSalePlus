@@ -65,9 +65,8 @@
     <fieldset>
         <legend>Salva/Richiama Preventivi</legend>
         <button onclick="salvaPreventivo()">Salva Preventivo</button>
-        <select id="listaPreventivi" onchange="richiamaPreventivo()">
-            <option value="">Seleziona un preventivo salvato</option>
-        </select>
+        <select id="listaPreventivi" multiple size="5"></select>
+        <button onclick="richiamaPreventivo()">Richiama Selezionato</button>
         <button onclick="eliminaPreventiviSelezionati()">Elimina Selezionati</button>
     </fieldset>
 
