@@ -258,10 +258,14 @@ function generaContenuto() {
             contenuto += `  Descrizione: ${descrizione}\n`;
             contenuto += `  Quantità: ${quantita}\n\n`;
         });
+        if (document.getElementById("mostraTrasporto").checked) {
+            contenuto += "Trasporto: " + (parseFloat(document.getElementById("costoTrasporto").value) || 0).toFixed(2) + "€\n";
+            contenuto += "Installazione: " + (parseFloat(document.getElementById("costoInstallazione").value) || 0).toFixed(2) + "€\n";
+        }
         contenuto += document.getElementById("totaleFinale").textContent + "\n";
         contenuto += "Prezzi sono al netto di IVA del 22%.\n";
     } else {
-        // Modalità dettagliata
+        // Modalità dettagliata: elenca ciascun articolo con tutti i dati
         contenuto += "Articoli:\n";
         const articoli = document.querySelectorAll(".articolo");
         articoli.forEach(articolo => {
@@ -296,7 +300,7 @@ function generaContenuto() {
             contenuto += "Installazione: " + (parseFloat(document.getElementById("costoInstallazione").value) || 0).toFixed(2) + "€\n";
             contenuto += document.getElementById("totaleFinale").textContent + "\n";
         } else {
-            // Se almeno un flag è selezionato
+            // Se almeno un flag è selezionato, mantiene il comportamento precedente
             contenuto += document.getElementById("totaleArticoli").textContent + "\n";
             if(document.getElementById("mostraMarginalita").checked) {
                 contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
