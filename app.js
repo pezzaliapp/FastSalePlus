@@ -135,7 +135,7 @@ function aggiungiArticolo() {
             <label>Descrizione: <input type="text" class="descrizione"></label>
             <label>Prezzo Lordo (€): <input type="number" class="prezzoLordo" step="0.01" oninput="calcolaPrezzo(this)"></label>
             <label>Sconto (%): <input type="number" class="sconto" step="0.01" oninput="calcolaPrezzo(this)"></label>
-            <label>Prezzo Netto (€): <input type="text" class="prezzoNetto" readonly></label>
+            <label>Prezzo Netto (€): <input type="text" class="prezzoNetto"></label>
             <label>Quantità: <input type="number" class="quantita" step="1" value="1" oninput="calcolaPrezzo(this)"></label>
             <label>Prezzo Totale (€): <input type="text" class="prezzoTotale" readonly></label>
             <button onclick="salvaArticolo(${idUnico})">Salva</button>
@@ -164,9 +164,14 @@ function calcolaPrezzo(input) {
     const prezzoLordo = parseFloat(row.querySelector(".prezzoLordo").value) || 0;
     const sconto = parseFloat(row.querySelector(".sconto").value) || 0;
     const quantita = parseInt(row.querySelector(".quantita").value) || 1;
-    const prezzoNetto = prezzoLordo * (1 - sconto / 100);
-    const prezzoTotale = prezzoNetto * quantita;
-    row.querySelector(".prezzoNetto").value = prezzoNetto.toFixed(2);
+    const prezzoNettoField = row.querySelector(".prezzoNetto");
+    // Se il campo prezzo netto è vuoto, calcolalo automaticamente
+    if (!prezzoNettoField.value) {
+        prezzoNettoField.value = (prezzoLordo * (1 - sconto / 100)).toFixed(2);
+    }
+    // Usa il valore presente (manuale o calcolato) per il calcolo del prezzo totale
+    const manualNetto = parseFloat(prezzoNettoField.value) || 0;
+    const prezzoTotale = manualNetto * quantita;
     row.querySelector(".prezzoTotale").value = prezzoTotale.toFixed(2);
     aggiornaTotaleGenerale();
 }
@@ -213,7 +218,7 @@ function aggiungiArticoloConDati(dati) {
             <label>Descrizione: <input type="text" class="descrizione" value="${dati.descrizione || ""}"></label>
             <label>Prezzo Lordo (€): <input type="number" class="prezzoLordo" step="0.01" value="${dati.prezzoLordo || ""}" oninput="calcolaPrezzo(this)"></label>
             <label>Sconto (%): <input type="number" class="sconto" step="0.01" value="${dati.sconto || ""}" oninput="calcolaPrezzo(this)"></label>
-            <label>Prezzo Netto (€): <input type="text" class="prezzoNetto" value="${dati.prezzoNetto || ""}" readonly></label>
+            <label>Prezzo Netto (€): <input type="text" class="prezzoNetto" value="${dati.prezzoNetto || ""}"></label>
             <label>Quantità: <input type="number" class="quantita" step="1" value="${dati.quantita || 1}" oninput="calcolaPrezzo(this)"></label>
             <label>Prezzo Totale (€): <input type="text" class="prezzoTotale" value="${dati.prezzoTotale || ""}" readonly></label>
             <button onclick="salvaArticolo(${idUnico})">Salva</button>
