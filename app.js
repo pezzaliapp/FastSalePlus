@@ -135,9 +135,33 @@ function aggiungiArticolo() {
             <label>Descrizione: <input type="text" class="descrizione"></label>
             <label>Prezzo Lordo (€): <input type="number" class="prezzoLordo" step="0.01" oninput="calcolaPrezzo(this)"></label>
             <label>Sconto (%): <input type="number" class="sconto" step="0.01" oninput="calcolaPrezzo(this)"></label>
-            <label>Prezzo Netto (€): <input type="text" class="prezzoNetto" readonly></label>
+            <!-- RIMOSSO readonly, AGGIUNTO type="number", step="0.01" E oninput -->
+            <label>Prezzo Netto (€): <input type="number" class="prezzoNetto" step="0.01" oninput="calcolaPrezzo(this)"></label>
             <label>Quantità: <input type="number" class="quantita" step="1" value="1" oninput="calcolaPrezzo(this)"></label>
             <label>Prezzo Totale (€): <input type="text" class="prezzoTotale" readonly></label>
+            <button onclick="salvaArticolo(${idUnico})">Salva</button>
+            <button onclick="rimuoviArticolo(this)">Rimuovi</button>
+        </details>
+    `;
+    container.appendChild(div);
+}
+
+function aggiungiArticoloConDati(dati) {
+    const container = document.getElementById("articoli-container");
+    const idUnico = Date.now() + Math.floor(Math.random() * 1000);
+    const div = document.createElement("div");
+    div.classList.add("articolo");
+    div.innerHTML = `
+        <details id="articolo-${idUnico}" open>
+            <summary>${dati.codice || "Nuovo Articolo"}</summary>
+            <label>Codice: <input type="text" class="codice" value="${dati.codice || ""}" oninput="aggiornaTitolo(this, ${idUnico})"></label>
+            <label>Descrizione: <input type="text" class="descrizione" value="${dati.descrizione || ""}"></label>
+            <label>Prezzo Lordo (€): <input type="number" class="prezzoLordo" step="0.01" value="${dati.prezzoLordo || ""}" oninput="calcolaPrezzo(this)"></label>
+            <label>Sconto (%): <input type="number" class="sconto" step="0.01" value="${dati.sconto || ""}" oninput="calcolaPrezzo(this)"></label>
+            <!-- RIMOSSO readonly, AGGIUNTO type="number", step="0.01" E oninput -->
+            <label>Prezzo Netto (€): <input type="number" class="prezzoNetto" step="0.01" value="${dati.prezzoNetto || ""}" oninput="calcolaPrezzo(this)"></label>
+            <label>Quantità: <input type="number" class="quantita" step="1" value="${dati.quantita || 1}" oninput="calcolaPrezzo(this)"></label>
+            <label>Prezzo Totale (€): <input type="text" class="prezzoTotale" value="${dati.prezzoTotale || ""}" readonly></label>
             <button onclick="salvaArticolo(${idUnico})">Salva</button>
             <button onclick="rimuoviArticolo(this)">Rimuovi</button>
         </details>
@@ -159,15 +183,29 @@ function rimuoviArticolo(btn) {
     aggiornaTotaleGenerale();
 }
 
+// FUNZIONE MODIFICATA PER GESTIRE L'INSERIMENTO MANUALE DI PREZZO NETTO
 function calcolaPrezzo(input) {
     const row = input.closest(".articolo");
-    const prezzoLordo = parseFloat(row.querySelector(".prezzoLordo").value) || 0;
-    const sconto = parseFloat(row.querySelector(".sconto").value) || 0;
-    const quantita = parseInt(row.querySelector(".quantita").value) || 1;
-    const prezzoNetto = prezzoLordo * (1 - sconto / 100);
+
+    let prezzoLordo  = parseFloat(row.querySelector(".prezzoLordo").value) || 0;
+    let sconto       = parseFloat(row.querySelector(".sconto").value) || 0;
+    let quantita     = parseFloat(row.querySelector(".quantita").value) || 1;
+
+    const prezzoNettoEl = row.querySelector(".prezzoNetto");
+    let prezzoNetto     = parseFloat(prezzoNettoEl.value) || 0;
+
+    // Se l'input modificato è il prezzo lordo o lo sconto, ricalcoliamo il prezzo netto.
+    if (input.classList.contains("prezzoLordo") || input.classList.contains("sconto")) {
+        prezzoNetto = prezzoLordo * (1 - sconto / 100);
+        prezzoNettoEl.value = prezzoNetto.toFixed(2);
+    }
+    // Se l'input modificato è il prezzo netto, lo lasciamo così com'è inserito.
+    // (Eventualmente si potrebbe ricalcolare lo sconto in base a prezzoLordo-prezzoNetto, ma è facoltativo.)
+
+    // Calcolo del prezzo totale
     const prezzoTotale = prezzoNetto * quantita;
-    row.querySelector(".prezzoNetto").value = prezzoNetto.toFixed(2);
     row.querySelector(".prezzoTotale").value = prezzoTotale.toFixed(2);
+
     aggiornaTotaleGenerale();
 }
 
@@ -199,28 +237,6 @@ function calcolaTotaleFinale() {
     const costoInstallazione = parseFloat(document.getElementById("costoInstallazione").value) || 0;
     const totaleFinale = nuovoTotale + costoTrasporto + costoInstallazione;
     document.getElementById("totaleFinale").textContent = `Totale Finale: ${totaleFinale.toFixed(2)}€`;
-}
-
-function aggiungiArticoloConDati(dati) {
-    const container = document.getElementById("articoli-container");
-    const idUnico = Date.now() + Math.floor(Math.random() * 1000);
-    const div = document.createElement("div");
-    div.classList.add("articolo");
-    div.innerHTML = `
-        <details id="articolo-${idUnico}" open>
-            <summary>${dati.codice || "Nuovo Articolo"}</summary>
-            <label>Codice: <input type="text" class="codice" value="${dati.codice || ""}" oninput="aggiornaTitolo(this, ${idUnico})"></label>
-            <label>Descrizione: <input type="text" class="descrizione" value="${dati.descrizione || ""}"></label>
-            <label>Prezzo Lordo (€): <input type="number" class="prezzoLordo" step="0.01" value="${dati.prezzoLordo || ""}" oninput="calcolaPrezzo(this)"></label>
-            <label>Sconto (%): <input type="number" class="sconto" step="0.01" value="${dati.sconto || ""}" oninput="calcolaPrezzo(this)"></label>
-            <label>Prezzo Netto (€): <input type="text" class="prezzoNetto" value="${dati.prezzoNetto || ""}" readonly></label>
-            <label>Quantità: <input type="number" class="quantita" step="1" value="${dati.quantita || 1}" oninput="calcolaPrezzo(this)"></label>
-            <label>Prezzo Totale (€): <input type="text" class="prezzoTotale" value="${dati.prezzoTotale || ""}" readonly></label>
-            <button onclick="salvaArticolo(${idUnico})">Salva</button>
-            <button onclick="rimuoviArticolo(this)">Rimuovi</button>
-        </details>
-    `;
-    container.appendChild(div);
 }
 
 // ------------------------------
@@ -265,7 +281,7 @@ function generaContenuto() {
         contenuto += document.getElementById("totaleFinale").textContent + "\n";
         contenuto += "Prezzi sono al netto di IVA del 22%.\n";
     } else {
-        // Modalità dettagliata: elenca ciascun articolo con tutti i dati
+        // Modalità dettagliata
         contenuto += "Articoli:\n";
         const articoli = document.querySelectorAll(".articolo");
         articoli.forEach(articolo => {
@@ -292,7 +308,7 @@ function generaContenuto() {
             !document.getElementById("mostraMarginalita").checked &&
             !document.getElementById("mostraTrasporto").checked
         ) {
-            // Nessun flag selezionato: visualizza prima il margine, poi Totale Articoli, Nuovo Totale Articoli, Trasporto, Installazione e Totale Finale
+            // Nessun flag selezionato: mostra tutto
             contenuto += "Margine: " + (document.getElementById("margine").value || "0") + "%\n";
             contenuto += document.getElementById("totaleArticoli").textContent + "\n";
             contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
@@ -300,7 +316,7 @@ function generaContenuto() {
             contenuto += "Installazione: " + (parseFloat(document.getElementById("costoInstallazione").value) || 0).toFixed(2) + "€\n";
             contenuto += document.getElementById("totaleFinale").textContent + "\n";
         } else {
-            // Se almeno un flag è selezionato, mantiene il comportamento precedente
+            // Se almeno un flag è selezionato, mostra i relativi dati
             contenuto += document.getElementById("totaleArticoli").textContent + "\n";
             if(document.getElementById("mostraMarginalita").checked) {
                 contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
