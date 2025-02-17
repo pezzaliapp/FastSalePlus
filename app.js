@@ -165,8 +165,8 @@ function calcolaPrezzo(input) {
     const sconto = parseFloat(row.querySelector(".sconto").value) || 0;
     const quantita = parseInt(row.querySelector(".quantita").value) || 1;
     const prezzoNettoField = row.querySelector(".prezzoNetto");
-    // Se il campo prezzo netto è vuoto, calcolalo automaticamente
-    if (!prezzoNettoField.value) {
+    // Se l'input non proviene dal campo "prezzo netto" e il campo è vuoto, calcola il prezzo netto automaticamente
+    if (input !== prezzoNettoField && !prezzoNettoField.value) {
         prezzoNettoField.value = (prezzoLordo * (1 - sconto / 100)).toFixed(2);
     }
     // Usa il valore presente (manuale o calcolato) per il calcolo del prezzo totale
