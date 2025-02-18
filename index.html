@@ -32,32 +32,16 @@
   <!-- Marginalità -->
   <fieldset>
     <legend>Marginalità</legend>
-    <!-- Qui sconto e margine li lasciamo come number, niente formattazione con punti/virgole -->
-    <label>Marginalità (%): 
-      <input type="number" id="margine" step="0.01" oninput="calcolaMarginalita()" />
-    </label>
+    <label>Marginalità (%): <input type="number" id="margine" step="0.01" oninput="calcolaMarginalita()" /></label>
     <p id="totaleMarginalita">Nuovo Totale Articoli: 0,00€</p>
   </fieldset>
 
-  <!-- Costi Aggiuntivi -->
+  <!-- Costi Aggiuntivi (TESTO per consentire "gratuito", "incluso", ecc.) -->
   <fieldset>
     <legend>Trasporto e Installazione</legend>
-    <!-- type="text" per accettare scritture con punti, virgole, ecc. -->
-    <!-- oninput fa solo calcolo, onblur fa la formattazione -->
-    <label>Trasporto: 
-      <input 
-        type="text" 
-        id="costoTrasporto" 
-        oninput="calcolaTotaleFinale()" 
-        onblur="formatAutomatico(this)" />
-    </label>
-    <label>Installazione: 
-      <input 
-        type="text" 
-        id="costoInstallazione" 
-        oninput="calcolaTotaleFinale()" 
-        onblur="formatAutomatico(this)" />
-    </label>
+    <!-- type="text" così possiamo inserire sia numeri che testo -->
+    <label>Trasporto: <input type="text" id="costoTrasporto" oninput="calcolaTotaleFinale()" /></label>
+    <label>Installazione: <input type="text" id="costoInstallazione" oninput="calcolaTotaleFinale()" /></label>
     <p id="totaleFinale">Totale Finale: 0,00€</p>
   </fieldset>
 
