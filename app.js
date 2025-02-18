@@ -5,9 +5,30 @@ document.addEventListener("DOMContentLoaded", function () {
   aggiornaTotaleGenerale();
 });
 
-// ------------------------------
-// FUNZIONI DI GESTIONE DEI PREVENTIVI
-// ------------------------------
+// ---------------------------------------------
+// 1) Funzioni di parsing e formattazione
+// ---------------------------------------------
+
+/**
+ * parseNumberITA(str)
+ * Permette di digitare "4.000" per 4000, oppure "1.234,56" per 1234.56
+ * - Rimuove i punti usati come separatori di migliaia
+ * - Converte la virgola in punto
+ * - parseFloat per ottenere un numero
+ * - Se non valido => 0
+ */
+function parseNumberITA(str) {
+  if (!str) return 0;
+  let pulito = str.replace(/[^\d.,-]/g, "");  // rimuove eventuali simboli non validi
+  pulito = pulito.replace(/\./g, "");         // rimuove i '.' usati come migliaia
+  pulito = pulito.replace(",", ".");          // sostituisce ',' con '.'
+  let valore = parseFloat(pulito);
+  return isNaN(valore) ? 0 : valore;
+}
+
+// ---------------------------------------------
+// 2) Gestione Preventivi
+// ---------------------------------------------
 
 function caricaPreventiviSalvati() {
   aggiornaListaPreventivi();
@@ -24,14 +45,16 @@ function getPreventivoData() {
 
   const articoli = [];
   document.querySelectorAll(".articolo").forEach((articolo) => {
-    const codice = articolo.querySelector(".codice")?.value || "";
-    const descrizione = articolo.querySelector(".descrizione")?.value || "";
-    const prezzoLordo = articolo.querySelector(".prezzoLordo")?.value || "";
-    const sconto = articolo.querySelector(".sconto")?.value || "";
-    const prezzoNetto = articolo.querySelector(".prezzoNetto")?.value || "";
-    const quantita = articolo.querySelector(".quantita")?.value || "";
+    const codice       = articolo.querySelector(".codice")?.value || "";
+    const descrizione  = articolo.querySelector(".descrizione")?.value || "";
+    const prezzoLordo  = articolo.querySelector(".prezzoLordo")?.value || "";
+    const sconto       = articolo.querySelector(".sconto")?.value || "";
+    const prezzoNetto  = articolo.querySelector(".prezzoNetto")?.value || "";
+    const quantita     = articolo.querySelector(".quantita")?.value || "";
     const prezzoTotale = articolo.querySelector(".prezzoTotale")?.value || "";
-    articoli.push({ codice, descrizione, prezzoLordo, sconto, prezzoNetto, quantita, prezzoTotale });
+    articoli.push({
+      codice, descrizione, prezzoLordo, sconto, prezzoNetto, quantita, prezzoTotale
+    });
   });
 
   const checkboxes = {
@@ -45,7 +68,6 @@ function getPreventivoData() {
     datiCliente,
     articoli,
     margine: document.getElementById("margine").value,
-    // Salviamo il contenuto (testo o numero) così come è stato digitato
     costoTrasporto: document.getElementById("costoTrasporto").value,
     costoInstallazione: document.getElementById("costoInstallazione").value,
     modalitaPagamento: document.getElementById("modalitaPagamento").value,
@@ -66,10 +88,10 @@ function salvaPreventivo() {
 
 function popolaForm(data) {
   document.getElementById("nomeAzienda").value = data.datiCliente.nomeAzienda;
-  document.getElementById("citta").value = data.datiCliente.citta;
-  document.getElementById("indirizzo").value = data.datiCliente.indirizzo;
-  document.getElementById("telefono").value = data.datiCliente.telefono;
-  document.getElementById("email").value = data.datiCliente.email;
+  document.getElementById("citta").value       = data.datiCliente.citta;
+  document.getElementById("indirizzo").value   = data.datiCliente.indirizzo;
+  document.getElementById("telefono").value    = data.datiCliente.telefono;
+  document.getElementById("email").value       = data.datiCliente.email;
 
   const container = document.getElementById("articoli-container");
   container.innerHTML = "";
@@ -77,23 +99,22 @@ function popolaForm(data) {
     aggiungiArticoloConDati(article);
   });
 
-  document.getElementById("margine").value = data.margine;
-  // Ripristiniamo trasporto e installazione (possono essere testo o numerici)
-  document.getElementById("costoTrasporto").value = data.costoTrasporto;
-  document.getElementById("costoInstallazione").value = data.costoInstallazione;
-  document.getElementById("modalitaPagamento").value = data.modalitaPagamento;
+  document.getElementById("margine").value             = data.margine;
+  document.getElementById("costoTrasporto").value      = data.costoTrasporto;
+  document.getElementById("costoInstallazione").value  = data.costoInstallazione;
+  document.getElementById("modalitaPagamento").value   = data.modalitaPagamento;
 
-  document.getElementById("mostraCodici").checked = data.checkboxes.mostraCodici;
-  document.getElementById("mostraPrezzi").checked = data.checkboxes.mostraPrezzi;
+  document.getElementById("mostraCodici").checked      = data.checkboxes.mostraCodici;
+  document.getElementById("mostraPrezzi").checked      = data.checkboxes.mostraPrezzi;
   document.getElementById("mostraMarginalita").checked = data.checkboxes.mostraMarginalita;
-  document.getElementById("mostraTrasporto").checked = data.checkboxes.mostraTrasporto;
+  document.getElementById("mostraTrasporto").checked   = data.checkboxes.mostraTrasporto;
 
   aggiornaTotaleGenerale();
 }
 
 function richiamaPreventivo() {
   const select = document.getElementById("listaPreventivi");
-  const index = select.value;
+  const index  = select.value;
   if (index === "") return;
   let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
   popolaForm(preventivi[index]);
@@ -103,7 +124,7 @@ function eliminaPreventiviSelezionati() {
   const select = document.getElementById("listaPreventivi");
   let preventivi = JSON.parse(localStorage.getItem("preventivi")) || [];
   const selezionati = Array.from(select.selectedOptions).map((option) => parseInt(option.value));
-  preventivi = preventivi.filter((_, index) => !selezionati.includes(index));
+  preventivi = preventivi.filter((_, idx) => !selezionati.includes(idx));
   localStorage.setItem("preventivi", JSON.stringify(preventivi));
   aggiornaListaPreventivi();
 }
@@ -121,25 +142,41 @@ function aggiornaListaPreventivi() {
   select.disabled = preventivi.length === 0;
 }
 
-// ------------------------------
-// FUNZIONI DI GESTIONE DEGLI ARTICOLI
-// ------------------------------
+// ---------------------------------------------
+// 3) Gestione Articoli
+// ---------------------------------------------
 
 function aggiungiArticolo() {
   const container = document.getElementById("articoli-container");
   const idUnico = Date.now();
   const div = document.createElement("div");
   div.classList.add("articolo");
+
+  // Nota: "type='text'" per prezzoLordo, prezzoNetto, quantita, così "4.000" è accettato
   div.innerHTML = `
     <details id="articolo-${idUnico}" open>
       <summary>Nuovo Articolo</summary>
-      <label>Codice: <input type="text" class="codice" oninput="aggiornaTitolo(this, ${idUnico})"></label>
-      <label>Descrizione: <input type="text" class="descrizione"></label>
-      <label>Prezzo Lordo (€): <input type="number" class="prezzoLordo" step="0.01" oninput="calcolaPrezzo(this)"></label>
-      <label>Sconto (%): <input type="number" class="sconto" step="0.01" oninput="calcolaPrezzo(this)"></label>
-      <label>Prezzo Netto (€): <input type="number" class="prezzoNetto" step="0.01" oninput="calcolaPrezzo(this)"></label>
-      <label>Quantità: <input type="number" class="quantita" step="1" value="1" oninput="calcolaPrezzo(this)"></label>
-      <label>Prezzo Totale (€): <input type="text" class="prezzoTotale" readonly></label>
+      <label>Codice:
+        <input type="text" class="codice" oninput="aggiornaTitolo(this, ${idUnico})">
+      </label>
+      <label>Descrizione:
+        <input type="text" class="descrizione">
+      </label>
+      <label>Prezzo Lordo (€):
+        <input type="text" class="prezzoLordo" oninput="calcolaPrezzo(this)">
+      </label>
+      <label>Sconto (%):
+        <input type="number" class="sconto" step="0.01" oninput="calcolaPrezzo(this)">
+      </label>
+      <label>Prezzo Netto (€):
+        <input type="text" class="prezzoNetto" oninput="calcolaPrezzo(this)">
+      </label>
+      <label>Quantità:
+        <input type="text" class="quantita" value="1" oninput="calcolaPrezzo(this)">
+      </label>
+      <label>Prezzo Totale (€):
+        <input type="text" class="prezzoTotale" readonly>
+      </label>
       <button onclick="salvaArticolo(${idUnico})">Salva</button>
       <button onclick="rimuoviArticolo(this)">Rimuovi</button>
     </details>
@@ -152,16 +189,43 @@ function aggiungiArticoloConDati(dati) {
   const idUnico = Date.now() + Math.floor(Math.random() * 1000);
   const div = document.createElement("div");
   div.classList.add("articolo");
+
   div.innerHTML = `
     <details id="articolo-${idUnico}" open>
       <summary>${dati.codice || "Nuovo Articolo"}</summary>
-      <label>Codice: <input type="text" class="codice" value="${dati.codice || ""}" oninput="aggiornaTitolo(this, ${idUnico})"></label>
-      <label>Descrizione: <input type="text" class="descrizione" value="${dati.descrizione || ""}"></label>
-      <label>Prezzo Lordo (€): <input type="number" class="prezzoLordo" step="0.01" value="${dati.prezzoLordo || ""}" oninput="calcolaPrezzo(this)"></label>
-      <label>Sconto (%): <input type="number" class="sconto" step="0.01" value="${dati.sconto || ""}" oninput="calcolaPrezzo(this)"></label>
-      <label>Prezzo Netto (€): <input type="number" class="prezzoNetto" step="0.01" value="${dati.prezzoNetto || ""}" oninput="calcolaPrezzo(this)"></label>
-      <label>Quantità: <input type="number" class="quantita" step="1" value="${dati.quantita || 1}" oninput="calcolaPrezzo(this)"></label>
-      <label>Prezzo Totale (€): <input type="text" class="prezzoTotale" value="${dati.prezzoTotale || ""}" readonly></label>
+      <label>Codice:
+        <input type="text" class="codice"
+          value="${dati.codice || ""}"
+          oninput="aggiornaTitolo(this, ${idUnico})">
+      </label>
+      <label>Descrizione:
+        <input type="text" class="descrizione" value="${dati.descrizione || ""}">
+      </label>
+      <label>Prezzo Lordo (€):
+        <input type="text" class="prezzoLordo"
+          value="${dati.prezzoLordo || ""}"
+          oninput="calcolaPrezzo(this)">
+      </label>
+      <label>Sconto (%):
+        <input type="number" class="sconto" step="0.01"
+          value="${dati.sconto || ""}"
+          oninput="calcolaPrezzo(this)">
+      </label>
+      <label>Prezzo Netto (€):
+        <input type="text" class="prezzoNetto"
+          value="${dati.prezzoNetto || ""}"
+          oninput="calcolaPrezzo(this)">
+      </label>
+      <label>Quantità:
+        <input type="text" class="quantita"
+          value="${dati.quantita || 1}"
+          oninput="calcolaPrezzo(this)">
+      </label>
+      <label>Prezzo Totale (€):
+        <input type="text" class="prezzoTotale"
+          value="${dati.prezzoTotale || ""}"
+          readonly>
+      </label>
       <button onclick="salvaArticolo(${idUnico})">Salva</button>
       <button onclick="rimuoviArticolo(this)">Rimuovi</button>
     </details>
@@ -183,23 +247,27 @@ function rimuoviArticolo(btn) {
   aggiornaTotaleGenerale();
 }
 
-// Calcolo prezzo articolo
+// ----------------------------------------------------
+// 4) Calcolo Prezzi
+// ----------------------------------------------------
+
 function calcolaPrezzo(input) {
   const row = input.closest(".articolo");
 
-  let prezzoLordo = parseFloat(row.querySelector(".prezzoLordo").value) || 0;
-  let sconto = parseFloat(row.querySelector(".sconto").value) || 0;
-  let quantita = parseFloat(row.querySelector(".quantita").value) || 1;
+  // Leggiamo i campi come numeri "all'italiana"
+  let prezzoLordo = parseNumberITA(row.querySelector(".prezzoLordo").value);
+  let sconto      = parseFloat(row.querySelector(".sconto").value) || 0; // % => number "normale"
+  let quantita    = parseNumberITA(row.querySelector(".quantita").value);
 
   const prezzoNettoEl = row.querySelector(".prezzoNetto");
-  let prezzoNetto = parseFloat(prezzoNettoEl.value) || 0;
+  let prezzoNetto = parseNumberITA(prezzoNettoEl.value);
 
-  // Se l'input modificato è il prezzo lordo o lo sconto, ricalcoliamo il prezzo netto
+  // Se è stato modificato il Prezzo Lordo o lo Sconto, ricalcoliamo il Netto
   if (input.classList.contains("prezzoLordo") || input.classList.contains("sconto")) {
     prezzoNetto = prezzoLordo * (1 - sconto / 100);
-    prezzoNettoEl.value = prezzoNetto.toFixed(2);
+    prezzoNettoEl.value = prezzoNetto.toFixed(2); // aggiorniamo come stringa
   }
-  // Altrimenti (se l'input modificato è il prezzo netto), lo lasciamo così com'è
+  // Altrimenti, se è stato modificato il Prezzo Netto, lasciamo quello immesso dall'utente
 
   const prezzoTotale = prezzoNetto * quantita;
   row.querySelector(".prezzoTotale").value = prezzoTotale.toFixed(2);
@@ -207,79 +275,70 @@ function calcolaPrezzo(input) {
   aggiornaTotaleGenerale();
 }
 
-// ------------------------------
-// FUNZIONI DI CALCOLO TOTALI
-// ------------------------------
-
 function aggiornaTotaleGenerale() {
   let totaleGenerale = 0;
   document.querySelectorAll(".prezzoTotale").forEach((input) => {
     totaleGenerale += parseFloat(input.value) || 0;
   });
-  document.getElementById("totaleArticoli").textContent = `Totale Articoli: ${totaleGenerale.toFixed(2)}€`;
+  document.getElementById("totaleArticoli").textContent =
+    `Totale Articoli: ${totaleGenerale.toFixed(2)}€`;
   calcolaMarginalita();
 }
 
 function calcolaMarginalita() {
   const totaleArticoliText = document.getElementById("totaleArticoli").textContent;
-  const totaleArticoli = parseFloat(totaleArticoliText.replace(/[^0-9.,]/g, "").replace(",", ".")) || 0;
+  const totaleArticoli = parseFloat(
+    totaleArticoliText.replace(/[^0-9.,]/g, "").replace(",", ".")
+  ) || 0;
+
   const margine = parseFloat(document.getElementById("margine").value) || 0;
   let nuovoTotale = totaleArticoli;
   if (margine > 0) {
     nuovoTotale = totaleArticoli / (1 - margine / 100);
   }
-  document.getElementById("totaleMarginalita").textContent = `Nuovo Totale Articoli: ${nuovoTotale.toFixed(2)}€`;
+  document.getElementById("totaleMarginalita").textContent =
+    `Nuovo Totale Articoli: ${nuovoTotale.toFixed(2)}€`;
   calcolaTotaleFinale();
 }
 
 function calcolaTotaleFinale() {
-  // Leggiamo i campi di trasporto e installazione (possono essere testo o numerici)
-  const trasportoVal = document.getElementById("costoTrasporto").value.trim();
+  const trasportoVal     = document.getElementById("costoTrasporto").value.trim();
   const installazioneVal = document.getElementById("costoInstallazione").value.trim();
 
-  // Proviamo a estrarre un valore numerico
-  let trasportoNum = parseFloat(trasportoVal.replace(",", "."));
-  if (isNaN(trasportoNum)) {
-    // Se è NaN, cioè testo non numerico (es. "incluso"), lo consideriamo = 0 nel calcolo
-    trasportoNum = 0;
-  }
+  // Proviamo a interpretare come numero
+  let trasportoNum = parseNumberITA(trasportoVal);
+  let installazioneNum = parseNumberITA(installazioneVal);
 
-  let installazioneNum = parseFloat(installazioneVal.replace(",", "."));
-  if (isNaN(installazioneNum)) {
-    installazioneNum = 0;
-  }
-
-  // Leggiamo il totale con marginalità
   const totaleMarginalitaText = document.getElementById("totaleMarginalita").textContent;
-  const nuovoTotale = parseFloat(totaleMarginalitaText.replace(/[^0-9.,]/g, "").replace(",", ".")) || 0;
+  const nuovoTotale = parseFloat(
+    totaleMarginalitaText.replace(/[^0-9.,]/g, "").replace(",", ".")
+  ) || 0;
 
-  // Sommiamo solo i valori numerici
   const totaleFinale = nuovoTotale + trasportoNum + installazioneNum;
-  document.getElementById("totaleFinale").textContent = `Totale Finale: ${totaleFinale.toFixed(2)}€`;
+  document.getElementById("totaleFinale").textContent =
+    `Totale Finale: ${totaleFinale.toFixed(2)}€`;
 }
 
-// ------------------------------
-// FUNZIONI DI GENERAZIONE DEL CONTENUTO (PDF/WHATSAPP)
-// ------------------------------
+// ----------------------------------------------------
+// 5) Stampa PDF/WhatsApp
+// ----------------------------------------------------
 
-/**
- * Funzione di supporto: restituisce una stringa da stampare
- * per i campi Trasporto/Installazione (o un fallback "0,00" se vuoto).
- * - Se l'utente ha scritto un numero, lo restituiamo con 2 decimali e "€"
- * - Se ha scritto testo, lo restituiamo così com'è.
- */
 function formatTrasportoInstallazione(val) {
   if (!val.trim()) {
-    // Campo vuoto
     return "0,00";
   }
-  // Proviamo a interpretarlo come numero
-  let num = parseFloat(val.replace(",", "."));
-  if (isNaN(num)) {
-    // Non è un numero: restituiamo il testo
-    return val;
+  let num = parseNumberITA(val);
+  if (isNaN(num) || num === 0) {
+    // se l'utente ha inserito testo tipo "incluso" o "gratuito", lasciamo così
+    // se è 0 perché parseNumberITA ha restituito 0, verifichiamo se era un testo
+    // ma se vuoi considerare "0" => "0,00€"
+    if (!/^\d/.test(val)) {
+      // se non inizia con cifra, assumiamo che sia testo
+      return val;
+    }
+    // altrimenti mettiamo 0,00
+    return "0,00";
   } else {
-    // È un numero
     return num.toFixed(2) + "€";
   }
 }
@@ -287,7 +346,7 @@ function formatTrasportoInstallazione(val) {
 function generaContenuto() {
   let contenuto = "";
 
-  // Data corrente (formattata come gg/mm/aaaa)
+  // Data corrente (gg/mm/aaaa)
   let oggi = new Date();
   let giorno = String(oggi.getDate()).padStart(2, "0");
   let mese = String(oggi.getMonth() + 1).padStart(2, "0");
@@ -303,21 +362,21 @@ function generaContenuto() {
   contenuto += `Cell/Tel.: ${document.getElementById("telefono").value}\n`;
   contenuto += `Email: ${document.getElementById("email").value}\n\n`;
 
-  // Distinzione: se spunta "mostraCodici"
+  // Controlliamo se mostraCodici
   if (document.getElementById("mostraCodici").checked) {
     // Modalità semplificata
     contenuto += "Articoli:\n";
     const articoli = document.querySelectorAll(".articolo");
     articoli.forEach((articolo) => {
-      const codice = articolo.querySelector(".codice")?.value || "";
+      const codice      = articolo.querySelector(".codice")?.value || "";
       const descrizione = articolo.querySelector(".descrizione")?.value || "";
-      const quantita = articolo.querySelector(".quantita")?.value || "";
+      const quantita    = articolo.querySelector(".quantita")?.value || "";
       contenuto += `Codice: ${codice}\n`;
       contenuto += `  Descrizione: ${descrizione}\n`;
       contenuto += `  Quantità: ${quantita}\n\n`;
     });
 
-    // Se è spuntato "mostraTrasporto", stampiamo trasporto e installazione come da input
+    // Trasporto/Installazione se richiesto
     if (document.getElementById("mostraTrasporto").checked) {
       const trasportoVal = document.getElementById("costoTrasporto").value;
       const installazioneVal = document.getElementById("costoInstallazione").value;
@@ -327,17 +386,18 @@ function generaContenuto() {
 
     contenuto += document.getElementById("totaleFinale").textContent + "\n";
     contenuto += "Prezzi sono al netto di IVA del 22%.\n";
+
   } else {
     // Modalità dettagliata
     contenuto += "Articoli:\n";
     const articoli = document.querySelectorAll(".articolo");
     articoli.forEach((articolo) => {
-      const codice = articolo.querySelector(".codice")?.value || "";
-      const descrizione = articolo.querySelector(".descrizione")?.value || "";
-      const prezzoLordo = articolo.querySelector(".prezzoLordo")?.value || "";
-      const sconto = articolo.querySelector(".sconto")?.value || "";
-      const prezzoNetto = articolo.querySelector(".prezzoNetto")?.value || "";
-      const quantita = articolo.querySelector(".quantita")?.value || "";
+      const codice       = articolo.querySelector(".codice")?.value || "";
+      const descrizione  = articolo.querySelector(".descrizione")?.value || "";
+      const prezzoLordo  = articolo.querySelector(".prezzoLordo")?.value || "";
+      const sconto       = articolo.querySelector(".sconto")?.value || "";
+      const prezzoNetto  = articolo.querySelector(".prezzoNetto")?.value || "";
+      const quantita     = articolo.querySelector(".quantita")?.value || "";
       const prezzoTotale = articolo.querySelector(".prezzoTotale")?.value || "";
       contenuto += `Codice: ${codice}\n`;
       contenuto += `  Descrizione: ${descrizione}\n`;
@@ -350,25 +410,24 @@ function generaContenuto() {
       contenuto += `  Prezzo Totale: ${prezzoTotale}€\n\n`;
     });
 
-    // Controlliamo i flag
-    const mostraPrezzi = document.getElementById("mostraPrezzi").checked;
+    // Flag vari
+    const mostraPrezzi      = document.getElementById("mostraPrezzi").checked;
     const mostraMarginalita = document.getElementById("mostraMarginalita").checked;
-    const mostraTrasporto = document.getElementById("mostraTrasporto").checked;
+    const mostraTrasporto   = document.getElementById("mostraTrasporto").checked;
 
     if (!mostraPrezzi && !mostraMarginalita && !mostraTrasporto) {
-      // Nessun flag selezionato: mostriamo tutto (margine, trasporto e installazione)
+      // Nessun flag: mostriamo tutto
       contenuto += `Margine: ${document.getElementById("margine").value || "0"}%\n`;
       contenuto += document.getElementById("totaleArticoli").textContent + "\n";
       contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
-
       const trasportoVal = document.getElementById("costoTrasporto").value;
       const installazioneVal = document.getElementById("costoInstallazione").value;
       contenuto += `Trasporto: ${formatTrasportoInstallazione(trasportoVal)}\n`;
       contenuto += `Installazione: ${formatTrasportoInstallazione(installazioneVal)}\n`;
-
       contenuto += document.getElementById("totaleFinale").textContent + "\n";
+
     } else {
-      // Se almeno un flag è selezionato, stampiamo di conseguenza
+      // Almeno un flag
       contenuto += document.getElementById("totaleArticoli").textContent + "\n";
       if (mostraMarginalita) {
         contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
