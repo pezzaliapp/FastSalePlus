@@ -32,14 +32,15 @@
   <!-- Marginalità -->
   <fieldset>
     <legend>Marginalità</legend>
+    <!-- Lo sconto o la marginalità restano invariati, come da richiesta -->
     <label>Marginalità (%): <input type="number" id="margine" step="0.01" oninput="calcolaMarginalita()" /></label>
     <p id="totaleMarginalita">Nuovo Totale Articoli: 0,00€</p>
   </fieldset>
 
-  <!-- Costi Aggiuntivi (TESTO per consentire "gratuito", "incluso", ecc.) -->
+  <!-- Costi Aggiuntivi -->
   <fieldset>
     <legend>Trasporto e Installazione</legend>
-    <!-- type="text" così possiamo inserire sia numeri che testo -->
+    <!-- Campi testo, perché possiamo inserire importi tipo "3.000,00" o "3,000.50€" e li interpretiamo -->
     <label>Trasporto: <input type="text" id="costoTrasporto" oninput="calcolaTotaleFinale()" /></label>
     <label>Installazione: <input type="text" id="costoInstallazione" oninput="calcolaTotaleFinale()" /></label>
     <p id="totaleFinale">Totale Finale: 0,00€</p>
