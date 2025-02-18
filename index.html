@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FastSale - Gestione Preventivi</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
   <script defer src="app.js"></script>
 </head>
 <body>
@@ -14,11 +14,11 @@
   <!-- Dati Cliente -->
   <fieldset>
     <legend>Dati Cliente</legend>
-    <label>Nome Azienda: <input type="text" id="nomeAzienda"></label>
-    <label>Città: <input type="text" id="citta"></label>
-    <label>Indirizzo: <input type="text" id="indirizzo"></label>
-    <label>Cell/Tel.: <input type="text" id="telefono"></label>
-    <label>Email (opzionale): <input type="email" id="email"></label>
+    <label>Nome Azienda: <input type="text" id="nomeAzienda" /></label>
+    <label>Città: <input type="text" id="citta" /></label>
+    <label>Indirizzo: <input type="text" id="indirizzo" /></label>
+    <label>Cell/Tel.: <input type="text" id="telefono" /></label>
+    <label>Email (opzionale): <input type="email" id="email" /></label>
   </fieldset>
 
   <!-- Articoli -->
@@ -32,31 +32,32 @@
   <!-- Marginalità -->
   <fieldset>
     <legend>Marginalità</legend>
-    <label>Marginalità (%): <input type="number" id="margine" step="0.01" oninput="calcolaMarginalita()"></label>
+    <label>Marginalità (%): <input type="number" id="margine" step="0.01" oninput="calcolaMarginalita()" /></label>
     <p id="totaleMarginalita">Nuovo Totale Articoli: 0,00€</p>
   </fieldset>
 
-  <!-- Costi Aggiuntivi -->
+  <!-- Costi Aggiuntivi (TESTO per consentire "gratuito", "incluso", ecc.) -->
   <fieldset>
     <legend>Trasporto e Installazione</legend>
-    <label>Trasporto (€): <input type="number" id="costoTrasporto" step="0.01" oninput="calcolaTotaleFinale()"></label>
-    <label>Installazione (€): <input type="number" id="costoInstallazione" step="0.01" oninput="calcolaTotaleFinale()"></label>
+    <!-- type="text" così possiamo inserire sia numeri che testo -->
+    <label>Trasporto: <input type="text" id="costoTrasporto" oninput="calcolaTotaleFinale()" /></label>
+    <label>Installazione: <input type="text" id="costoInstallazione" oninput="calcolaTotaleFinale()" /></label>
     <p id="totaleFinale">Totale Finale: 0,00€</p>
   </fieldset>
 
   <!-- Modalità di Pagamento -->
   <fieldset>
     <legend>Modalità di Pagamento</legend>
-    <input type="text" id="modalitaPagamento" placeholder="Inserisci la modalità di pagamento">
+    <input type="text" id="modalitaPagamento" placeholder="Inserisci la modalità di pagamento" />
   </fieldset>
 
   <!-- Opzioni di Output -->
   <fieldset>
     <legend>Opzioni Stampa</legend>
-    <label><input type="checkbox" id="mostraCodici"> Mostra Codici Articolo</label>
-    <label><input type="checkbox" id="mostraPrezzi"> Mostra Prezzi Netti</label>
-    <label><input type="checkbox" id="mostraMarginalita"> Mostra Marginalità</label>
-    <label><input type="checkbox" id="mostraTrasporto"> Trasporto e Installazione Inclusi</label>
+    <label><input type="checkbox" id="mostraCodici" /> Mostra Codici Articolo</label>
+    <label><input type="checkbox" id="mostraPrezzi" /> Mostra Prezzi Netti</label>
+    <label><input type="checkbox" id="mostraMarginalita" /> Mostra Marginalità</label>
+    <label><input type="checkbox" id="mostraTrasporto" /> Trasporto e Installazione Inclusi</label>
     <button onclick="generaPDF()">Genera PDF</button>
     <button onclick="inviaWhatsApp()">Invia su WhatsApp</button>
   </fieldset>
@@ -69,6 +70,5 @@
     <button onclick="richiamaPreventivo()">Richiama Selezionato</button>
     <button onclick="eliminaPreventiviSelezionati()">Elimina Selezionati</button>
   </fieldset>
-
 </body>
 </html>
