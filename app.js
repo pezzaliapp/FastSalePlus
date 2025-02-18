@@ -5,34 +5,32 @@ document.addEventListener("DOMContentLoaded", function () {
   aggiornaTotaleGenerale();
 });
 
-// ------------------------------
-// 1) FUNZIONI DI PARSING / FORMATTAZIONE ALL’ITALIANA
-// ------------------------------
+// -----------------------------------------------------
+// 1) FUNZIONI DI PARSING E FORMATTAZIONE “ALL'ITALIANA”
+// -----------------------------------------------------
 
 /**
  * parseNumberITA(str)
- * Interpreta una stringa come numero europeo (es. "3.500,25" => 3500.25).
- * - Rimuove i "." (separatore di migliaia).
- * - Converte la "," in "." come separatore decimale.
- * - parseFloat -> numero JS. Se non valido -> 0.
+ * Converte stringhe stile "4.000,50" in numero JavaScript (4000.50).
+ * - Rimuove i "." di troppo (migliaia)
+ * - Converte la virgola "," in "."
+ * - parseFloat => numero
  */
 function parseNumberITA(str) {
   if (!str) return 0;
-  // Rimuoviamo tutto ciò che non è cifra / virgola / punto (es. euro)
-  let pulito = str.replace(/[^\d.,-]/g, "");
-  // Rimuove i punti (migliaia)
-  pulito = pulito.replace(/\./g, "");
-  // Sostituisce virgola con punto
-  pulito = pulito.replace(",", ".");
-  let valore = parseFloat(pulito);
-  return isNaN(valore) ? 0 : valore;
+  let pulito = str.replace(/[^\d.,-]/g, ""); // Rimuove simboli non utili
+  pulito = pulito.replace(/\./g, "");       // Rimuove i punti (migliaia)
+  pulito = pulito.replace(",", ".");        // "," -> "."
+  let val = parseFloat(pulito);
+  return isNaN(val) ? 0 : val;
 }
 
 /**
  * formatNumberITA(num)
- * Ritorna una stringa con 2 decimali, usando
- * la formattazione it-IT (migliaia separate da ".", decimali da ",").
- * Esempio: 3500.25 -> "3.500,25"
+ * Ritorna una stringa con 2 decimali, usando lo stile italiano:
+ * - "." come separatore migliaia
+ * - "," come separatore decimali
+ * Esempio: 4000.5 => "4.000,50"
  */
 function formatNumberITA(num) {
   if (isNaN(num)) num = 0;
@@ -42,9 +40,9 @@ function formatNumberITA(num) {
   }).format(num);
 }
 
-// ------------------------------
-// 2) FUNZIONI DI GESTIONE DEI PREVENTIVI
-// ------------------------------
+// -----------------------------------------------------
+// 2) FUNZIONI DI GESTIONE PREVENTIVI (Salva, Richiama...)
+// -----------------------------------------------------
 
 function caricaPreventiviSalvati() {
   aggiornaListaPreventivi();
@@ -68,6 +66,7 @@ function getPreventivoData() {
     const prezzoNetto  = articolo.querySelector(".prezzoNetto")?.value || "";
     const quantita     = articolo.querySelector(".quantita")?.value || "";
     const prezzoTotale = articolo.querySelector(".prezzoTotale")?.value || "";
+
     articoli.push({ codice, descrizione, prezzoLordo, sconto, prezzoNetto, quantita, prezzoTotale });
   });
 
@@ -156,9 +155,9 @@ function aggiornaListaPreventivi() {
   select.disabled = preventivi.length === 0;
 }
 
-// ------------------------------
+// -----------------------------------------------------
 // 3) GESTIONE ARTICOLI
-// ------------------------------
+// -----------------------------------------------------
 
 function aggiungiArticolo() {
   const container = document.getElementById("articoli-container");
@@ -166,7 +165,7 @@ function aggiungiArticolo() {
   const div = document.createElement("div");
   div.classList.add("articolo");
 
-  // Campi di testo per il formato “3.500,25”
+  // type="text" per i prezzi, così "4.000,50" è ammesso
   div.innerHTML = `
     <details id="articolo-${idUnico}" open>
       <summary>Nuovo Articolo</summary>
@@ -182,6 +181,7 @@ function aggiungiArticolo() {
       <label>Sconto (%):
         <input type="number" class="sconto" step="0.01" oninput="calcolaPrezzo(this)">
       </label>
+      <!-- Prezzo Netto inseribile manualmente -->
       <label>Prezzo Netto (€):
         <input type="text" class="prezzoNetto" oninput="calcolaPrezzo(this)">
       </label>
@@ -225,6 +225,7 @@ function aggiungiArticoloConDati(dati) {
           value="${dati.sconto || ""}"
           oninput="calcolaPrezzo(this)">
       </label>
+      <!-- Prezzo Netto inseribile a mano -->
       <label>Prezzo Netto (€):
         <input type="text" class="prezzoNetto"
           value="${dati.prezzoNetto || ""}"
@@ -261,47 +262,52 @@ function rimuoviArticolo(btn) {
   aggiornaTotaleGenerale();
 }
 
-// ------------------------------
+// -----------------------------------------------------
 // 4) CALCOLO PREZZI
-// ------------------------------
-
+// -----------------------------------------------------
 function calcolaPrezzo(input) {
   const row = input.closest(".articolo");
 
+  // Prezzo Lordo (testo "4.000,50")
   let prezzoLordo = parseNumberITA(row.querySelector(".prezzoLordo").value);
-  let sconto      = parseFloat(row.querySelector(".sconto").value) || 0; 
+  // Sconto in %
+  let sconto      = parseFloat(row.querySelector(".sconto").value) || 0;
+  // Quantità
   let quantita    = parseNumberITA(row.querySelector(".quantita").value);
 
   const prezzoNettoEl = row.querySelector(".prezzoNetto");
   let prezzoNetto     = parseNumberITA(prezzoNettoEl.value);
 
-  // Se l'input cambiato è Prezzo Lordo o Sconto, ricalcoliamo il Netto
+  // CASO 1: se l'input modificato è Prezzo Lordo o Sconto
+  // => ricalcolo Prezzo Netto
   if (
     input.classList.contains("prezzoLordo") ||
     input.classList.contains("sconto")
   ) {
     prezzoNetto = prezzoLordo * (1 - sconto / 100);
-    // Formattiamo "Prezzo Netto" in stile it-IT
+    // Mostriamo in formato italiano
     prezzoNettoEl.value = formatNumberITA(prezzoNetto);
   } else {
-    // Se l'input cambiato è Prezzo Netto, lo lasciamo ma riformattiamo
+    // CASO 2: se l'input modificato è Prezzo Netto,
+    // => lo lasciamo com'è, ma formattiamo
     prezzoNettoEl.value = formatNumberITA(prezzoNetto);
   }
 
-  // Calcolo Prezzo Totale
+  // Calcolo del Prezzo Totale
   let prezzoTotale = prezzoNetto * quantita;
+  // Visualizzazione
   row.querySelector(".prezzoTotale").value = formatNumberITA(prezzoTotale);
 
+  // Aggiorna i totali generali
   aggiornaTotaleGenerale();
 }
 
 function aggiornaTotaleGenerale() {
   let totaleGenerale = 0;
+  // Sommiamo tutti i "prezzoTotale"
   document.querySelectorAll(".prezzoTotale").forEach((input) => {
-    // Interpretiamo la stringa (es. "4.000,50") come numero
     totaleGenerale += parseNumberITA(input.value);
   });
-  // Formattiamo il totale
   document.getElementById("totaleArticoli").textContent =
     `Totale Articoli: ${formatNumberITA(totaleGenerale)}€`;
   calcolaMarginalita();
@@ -309,6 +315,7 @@ function aggiornaTotaleGenerale() {
 
 function calcolaMarginalita() {
   const totalTxt = document.getElementById("totaleArticoli").textContent; 
+  // Esempio "Totale Articoli: 4.000,50€"
   let match = totalTxt.match(/([\d.,]+)/);
   let totaleArticoli = 0;
   if (match) {
@@ -343,15 +350,14 @@ function calcolaTotaleFinale() {
     `Totale Finale: ${formatNumberITA(finale)}€`;
 }
 
-// ------------------------------
-// 5) FUNZIONI DI GENERAZIONE CONTENUTO (PDF/WHATSAPP)
-// ------------------------------
+// -----------------------------------------------------
+// 5) GENERAZIONE CONTENUTO (PDF/WHATSAPP)
+// -----------------------------------------------------
 
 /**
  * formatTrasportoInstallazione(val)
- * Se l'utente ha scritto testo ("gratuito", "incluso"), lasciamo quello.
- * Se è un numero, usiamo formatNumberITA + "€".
- * Se è vuoto -> "0,00".
+ * Se "incluso" (o testo), lasciamo invariato; se numero => formatNumberITA + "€";
+ * se vuoto => "0,00".
  */
 function formatTrasportoInstallazione(val) {
   if (!val.trim()) {
@@ -359,7 +365,8 @@ function formatTrasportoInstallazione(val) {
   }
   let n = parseNumberITA(val);
   if (isNaN(n) || n === 0) {
-    // se non inizia con cifra, potrebbe essere testo
+    // potremmo anche decidere di mettere "0,00€" se n===0
+    // ma se l'utente scrive "incluso", lasciamo "incluso"
     return val;
   } else {
     return formatNumberITA(n) + "€";
@@ -369,13 +376,12 @@ function formatTrasportoInstallazione(val) {
 function generaContenuto() {
   let contenuto = "";
 
-  // Data corrente (formato gg/mm/aaaa)
+  // Data odierna
   let oggi = new Date();
   let giorno = String(oggi.getDate()).padStart(2, "0");
   let mese = String(oggi.getMonth() + 1).padStart(2, "0");
   let anno = oggi.getFullYear();
-  let dataFormattata = `${giorno}/${mese}/${anno}`;
-  contenuto += `Data: ${dataFormattata}\n\n`;
+  contenuto += `Data: ${giorno}/${mese}/${anno}\n\n`;
 
   // Dati Cliente
   contenuto += "Dati Cliente:\n";
@@ -407,7 +413,6 @@ function generaContenuto() {
 
     contenuto += document.getElementById("totaleFinale").textContent + "\n";
     contenuto += "Prezzi sono al netto di IVA del 22%.\n";
-
   } else {
     // Modalità dettagliata
     contenuto += "Articoli:\n";
@@ -436,7 +441,7 @@ function generaContenuto() {
     const mostraTrasporto   = document.getElementById("mostraTrasporto").checked;
 
     if (!mostraPrezzi && !mostraMarginalita && !mostraTrasporto) {
-      // Nessun flag: mostriamo tutto
+      // Nessun flag -> mostriamo tutto
       contenuto += `Margine: ${document.getElementById("margine").value || "0"}%\n`;
       contenuto += document.getElementById("totaleArticoli").textContent + "\n";
       contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
