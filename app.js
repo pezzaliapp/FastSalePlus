@@ -5,30 +5,46 @@ document.addEventListener("DOMContentLoaded", function () {
   aggiornaTotaleGenerale();
 });
 
-// ---------------------------------------------
-// 1) Funzioni di parsing e formattazione
-// ---------------------------------------------
+// ------------------------------
+// 1) FUNZIONI DI PARSING / FORMATTAZIONE ALL’ITALIANA
+// ------------------------------
 
 /**
  * parseNumberITA(str)
- * Permette di digitare "4.000" per 4000, oppure "1.234,56" per 1234.56
- * - Rimuove i punti usati come separatori di migliaia
- * - Converte la virgola in punto
- * - parseFloat per ottenere un numero
- * - Se non valido => 0
+ * Interpreta una stringa come numero europeo (es. "3.500,25" => 3500.25).
+ * - Rimuove i "." (separatore di migliaia).
+ * - Converte la "," in "." come separatore decimale.
+ * - parseFloat -> numero JS. Se non valido -> 0.
  */
 function parseNumberITA(str) {
   if (!str) return 0;
-  let pulito = str.replace(/[^\d.,-]/g, "");  // rimuove eventuali simboli non validi
-  pulito = pulito.replace(/\./g, "");         // rimuove i '.' usati come migliaia
-  pulito = pulito.replace(",", ".");          // sostituisce ',' con '.'
+  // Rimuoviamo tutto ciò che non è cifra / virgola / punto (es. euro)
+  let pulito = str.replace(/[^\d.,-]/g, "");
+  // Rimuove i punti (migliaia)
+  pulito = pulito.replace(/\./g, "");
+  // Sostituisce virgola con punto
+  pulito = pulito.replace(",", ".");
   let valore = parseFloat(pulito);
   return isNaN(valore) ? 0 : valore;
 }
 
-// ---------------------------------------------
-// 2) Gestione Preventivi
-// ---------------------------------------------
+/**
+ * formatNumberITA(num)
+ * Ritorna una stringa con 2 decimali, usando
+ * la formattazione it-IT (migliaia separate da ".", decimali da ",").
+ * Esempio: 3500.25 -> "3.500,25"
+ */
+function formatNumberITA(num) {
+  if (isNaN(num)) num = 0;
+  return new Intl.NumberFormat("it-IT", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(num);
+}
+
+// ------------------------------
+// 2) FUNZIONI DI GESTIONE DEI PREVENTIVI
+// ------------------------------
 
 function caricaPreventiviSalvati() {
   aggiornaListaPreventivi();
@@ -52,9 +68,7 @@ function getPreventivoData() {
     const prezzoNetto  = articolo.querySelector(".prezzoNetto")?.value || "";
     const quantita     = articolo.querySelector(".quantita")?.value || "";
     const prezzoTotale = articolo.querySelector(".prezzoTotale")?.value || "";
-    articoli.push({
-      codice, descrizione, prezzoLordo, sconto, prezzoNetto, quantita, prezzoTotale
-    });
+    articoli.push({ codice, descrizione, prezzoLordo, sconto, prezzoNetto, quantita, prezzoTotale });
   });
 
   const checkboxes = {
@@ -142,9 +156,9 @@ function aggiornaListaPreventivi() {
   select.disabled = preventivi.length === 0;
 }
 
-// ---------------------------------------------
-// 3) Gestione Articoli
-// ---------------------------------------------
+// ------------------------------
+// 3) GESTIONE ARTICOLI
+// ------------------------------
 
 function aggiungiArticolo() {
   const container = document.getElementById("articoli-container");
@@ -152,7 +166,7 @@ function aggiungiArticolo() {
   const div = document.createElement("div");
   div.classList.add("articolo");
 
-  // Nota: "type='text'" per prezzoLordo, prezzoNetto, quantita, così "4.000" è accettato
+  // Campi di testo per il formato “3.500,25”
   div.innerHTML = `
     <details id="articolo-${idUnico}" open>
       <summary>Nuovo Articolo</summary>
@@ -247,30 +261,36 @@ function rimuoviArticolo(btn) {
   aggiornaTotaleGenerale();
 }
 
-// ----------------------------------------------------
-// 4) Calcolo Prezzi
-// ----------------------------------------------------
+// ------------------------------
+// 4) CALCOLO PREZZI
+// ------------------------------
 
 function calcolaPrezzo(input) {
   const row = input.closest(".articolo");
 
-  // Leggiamo i campi come numeri "all'italiana"
   let prezzoLordo = parseNumberITA(row.querySelector(".prezzoLordo").value);
-  let sconto      = parseFloat(row.querySelector(".sconto").value) || 0; // % => number "normale"
+  let sconto      = parseFloat(row.querySelector(".sconto").value) || 0; 
   let quantita    = parseNumberITA(row.querySelector(".quantita").value);
 
   const prezzoNettoEl = row.querySelector(".prezzoNetto");
-  let prezzoNetto = parseNumberITA(prezzoNettoEl.value);
+  let prezzoNetto     = parseNumberITA(prezzoNettoEl.value);
 
-  // Se è stato modificato il Prezzo Lordo o lo Sconto, ricalcoliamo il Netto
-  if (input.classList.contains("prezzoLordo") || input.classList.contains("sconto")) {
+  // Se l'input cambiato è Prezzo Lordo o Sconto, ricalcoliamo il Netto
+  if (
+    input.classList.contains("prezzoLordo") ||
+    input.classList.contains("sconto")
+  ) {
     prezzoNetto = prezzoLordo * (1 - sconto / 100);
-    prezzoNettoEl.value = prezzoNetto.toFixed(2); // aggiorniamo come stringa
+    // Formattiamo "Prezzo Netto" in stile it-IT
+    prezzoNettoEl.value = formatNumberITA(prezzoNetto);
+  } else {
+    // Se l'input cambiato è Prezzo Netto, lo lasciamo ma riformattiamo
+    prezzoNettoEl.value = formatNumberITA(prezzoNetto);
   }
-  // Altrimenti, se è stato modificato il Prezzo Netto, lasciamo quello immesso dall'utente
 
-  const prezzoTotale = prezzoNetto * quantita;
-  row.querySelector(".prezzoTotale").value = prezzoTotale.toFixed(2);
+  // Calcolo Prezzo Totale
+  let prezzoTotale = prezzoNetto * quantita;
+  row.querySelector(".prezzoTotale").value = formatNumberITA(prezzoTotale);
 
   aggiornaTotaleGenerale();
 }
@@ -278,26 +298,29 @@ function calcolaPrezzo(input) {
 function aggiornaTotaleGenerale() {
   let totaleGenerale = 0;
   document.querySelectorAll(".prezzoTotale").forEach((input) => {
-    totaleGenerale += parseFloat(input.value) || 0;
+    // Interpretiamo la stringa (es. "4.000,50") come numero
+    totaleGenerale += parseNumberITA(input.value);
   });
+  // Formattiamo il totale
   document.getElementById("totaleArticoli").textContent =
-    `Totale Articoli: ${totaleGenerale.toFixed(2)}€`;
+    `Totale Articoli: ${formatNumberITA(totaleGenerale)}€`;
   calcolaMarginalita();
 }
 
 function calcolaMarginalita() {
-  const totaleArticoliText = document.getElementById("totaleArticoli").textContent;
-  const totaleArticoli = parseFloat(
-    totaleArticoliText.replace(/[^0-9.,]/g, "").replace(",", ".")
-  ) || 0;
-
+  const totalTxt = document.getElementById("totaleArticoli").textContent; 
+  let match = totalTxt.match(/([\d.,]+)/);
+  let totaleArticoli = 0;
+  if (match) {
+    totaleArticoli = parseNumberITA(match[1]);
+  }
   const margine = parseFloat(document.getElementById("margine").value) || 0;
   let nuovoTotale = totaleArticoli;
   if (margine > 0) {
     nuovoTotale = totaleArticoli / (1 - margine / 100);
   }
   document.getElementById("totaleMarginalita").textContent =
-    `Nuovo Totale Articoli: ${nuovoTotale.toFixed(2)}€`;
+    `Nuovo Totale Articoli: ${formatNumberITA(nuovoTotale)}€`;
   calcolaTotaleFinale();
 }
 
@@ -305,48 +328,48 @@ function calcolaTotaleFinale() {
   const trasportoVal     = document.getElementById("costoTrasporto").value.trim();
   const installazioneVal = document.getElementById("costoInstallazione").value.trim();
 
-  // Proviamo a interpretare come numero
-  let trasportoNum = parseNumberITA(trasportoVal);
-  let installazioneNum = parseNumberITA(installazioneVal);
+  let trasportoNum      = parseNumberITA(trasportoVal);
+  let installazioneNum  = parseNumberITA(installazioneVal);
 
-  const totaleMarginalitaText = document.getElementById("totaleMarginalita").textContent;
-  const nuovoTotale = parseFloat(
-    totaleMarginalitaText.replace(/[^0-9.,]/g, "").replace(",", ".")
-  ) || 0;
+  const totMarginTxt = document.getElementById("totaleMarginalita").textContent;
+  let match = totMarginTxt.match(/([\d.,]+)/);
+  let nuovoTotale = 0;
+  if (match) {
+    nuovoTotale = parseNumberITA(match[1]);
+  }
 
-  const totaleFinale = nuovoTotale + trasportoNum + installazioneNum;
+  const finale = nuovoTotale + trasportoNum + installazioneNum;
   document.getElementById("totaleFinale").textContent =
-    `Totale Finale: ${totaleFinale.toFixed(2)}€`;
+    `Totale Finale: ${formatNumberITA(finale)}€`;
 }
 
-// ----------------------------------------------------
-// 5) Stampa PDF/WhatsApp
-// ----------------------------------------------------
+// ------------------------------
+// 5) FUNZIONI DI GENERAZIONE CONTENUTO (PDF/WHATSAPP)
+// ------------------------------
 
+/**
+ * formatTrasportoInstallazione(val)
+ * Se l'utente ha scritto testo ("gratuito", "incluso"), lasciamo quello.
+ * Se è un numero, usiamo formatNumberITA + "€".
+ * Se è vuoto -> "0,00".
+ */
 function formatTrasportoInstallazione(val) {
   if (!val.trim()) {
     return "0,00";
   }
-  let num = parseNumberITA(val);
-  if (isNaN(num) || num === 0) {
-    // se l'utente ha inserito testo tipo "incluso" o "gratuito", lasciamo così
-    // se è 0 perché parseNumberITA ha restituito 0, verifichiamo se era un testo
-    // ma se vuoi considerare "0" => "0,00€"
-    if (!/^\d/.test(val)) {
-      // se non inizia con cifra, assumiamo che sia testo
-      return val;
-    }
-    // altrimenti mettiamo 0,00
-    return "0,00";
+  let n = parseNumberITA(val);
+  if (isNaN(n) || n === 0) {
+    // se non inizia con cifra, potrebbe essere testo
+    return val;
   } else {
-    return num.toFixed(2) + "€";
+    return formatNumberITA(n) + "€";
   }
 }
 
 function generaContenuto() {
   let contenuto = "";
 
-  // Data corrente (gg/mm/aaaa)
+  // Data corrente (formato gg/mm/aaaa)
   let oggi = new Date();
   let giorno = String(oggi.getDate()).padStart(2, "0");
   let mese = String(oggi.getMonth() + 1).padStart(2, "0");
@@ -362,7 +385,6 @@ function generaContenuto() {
   contenuto += `Cell/Tel.: ${document.getElementById("telefono").value}\n`;
   contenuto += `Email: ${document.getElementById("email").value}\n\n`;
 
-  // Controlliamo se mostraCodici
   if (document.getElementById("mostraCodici").checked) {
     // Modalità semplificata
     contenuto += "Articoli:\n";
@@ -376,9 +398,8 @@ function generaContenuto() {
       contenuto += `  Quantità: ${quantita}\n\n`;
     });
 
-    // Trasporto/Installazione se richiesto
     if (document.getElementById("mostraTrasporto").checked) {
-      const trasportoVal = document.getElementById("costoTrasporto").value;
+      const trasportoVal     = document.getElementById("costoTrasporto").value;
       const installazioneVal = document.getElementById("costoInstallazione").value;
       contenuto += `Trasporto: ${formatTrasportoInstallazione(trasportoVal)}\n`;
       contenuto += `Installazione: ${formatTrasportoInstallazione(installazioneVal)}\n`;
@@ -410,7 +431,6 @@ function generaContenuto() {
       contenuto += `  Prezzo Totale: ${prezzoTotale}€\n\n`;
     });
 
-    // Flag vari
     const mostraPrezzi      = document.getElementById("mostraPrezzi").checked;
     const mostraMarginalita = document.getElementById("mostraMarginalita").checked;
     const mostraTrasporto   = document.getElementById("mostraTrasporto").checked;
@@ -420,12 +440,11 @@ function generaContenuto() {
       contenuto += `Margine: ${document.getElementById("margine").value || "0"}%\n`;
       contenuto += document.getElementById("totaleArticoli").textContent + "\n";
       contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
-      const trasportoVal = document.getElementById("costoTrasporto").value;
+      const trasportoVal     = document.getElementById("costoTrasporto").value;
       const installazioneVal = document.getElementById("costoInstallazione").value;
       contenuto += `Trasporto: ${formatTrasportoInstallazione(trasportoVal)}\n`;
       contenuto += `Installazione: ${formatTrasportoInstallazione(installazioneVal)}\n`;
       contenuto += document.getElementById("totaleFinale").textContent + "\n";
-
     } else {
       // Almeno un flag
       contenuto += document.getElementById("totaleArticoli").textContent + "\n";
@@ -433,7 +452,7 @@ function generaContenuto() {
         contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
       }
       if (mostraTrasporto) {
-        const trasportoVal = document.getElementById("costoTrasporto").value;
+        const trasportoVal     = document.getElementById("costoTrasporto").value;
         const installazioneVal = document.getElementById("costoInstallazione").value;
         contenuto += `Trasporto: ${formatTrasportoInstallazione(trasportoVal)}\n`;
         contenuto += `Installazione: ${formatTrasportoInstallazione(installazioneVal)}\n`;
