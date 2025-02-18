@@ -6,6 +6,53 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ------------------------------
+// FUNZIONI DI FORMATTAZIONE / PARSING
+// ------------------------------
+
+/**
+ * parseNumberITA(str)
+ * - Rimuove caratteri superflui (spazi, €, ecc.).
+ * - Elimina i punti (.) che presumiamo come separatori migliaia.
+ * - Trasforma la virgola (,) in punto (.) come separatore decimale.
+ * - Con parseFloat otteniamo un numero. Se non valido -> 0.
+ */
+function parseNumberITA(str) {
+  if (!str) return 0;
+  // Elimina tutto ciò che non è cifra, punto, virgola o segno meno
+  let pulito = str.replace(/[^\d.,-]/g, '');
+  // Rimuove i punti di troppo (usati come separatori migliaia)
+  // Esempio: "3.000,50" -> "3000,50"
+  pulito = pulito.replace(/\./g, '');
+  // Poi sostituisce la virgola con il punto decimale
+  pulito = pulito.replace(',', '.');
+  let valore = parseFloat(pulito);
+  if (isNaN(valore)) valore = 0;
+  return valore;
+}
+
+/**
+ * formatNumberITA(num, withCurrency)
+ * - Usa localizzazione italiana: separatore migliaia "." e decimali ",".
+ * - 2 decimali di default.
+ * - Se withCurrency = true -> aggiunge "€" in fondo.
+ */
+function formatNumberITA(num, withCurrency = false) {
+  // Ci assicuriamo che sia un numero
+  const numero = isNaN(num) ? 0 : num;
+  // Formattiamo con lo standard it-IT (2 decimali)
+  let opzioni = {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  };
+  // Esempio "3.000,50"
+  let formattato = new Intl.NumberFormat('it-IT', opzioni).format(numero);
+  if (withCurrency) {
+    formattato += '€';
+  }
+  return formattato;
+}
+
+// ------------------------------
 // FUNZIONI DI GESTIONE DEI PREVENTIVI
 // ------------------------------
 
@@ -27,7 +74,7 @@ function getPreventivoData() {
     const codice = articolo.querySelector(".codice")?.value || "";
     const descrizione = articolo.querySelector(".descrizione")?.value || "";
     const prezzoLordo = articolo.querySelector(".prezzoLordo")?.value || "";
-    const sconto = articolo.querySelector(".sconto")?.value || "";
+    const sconto = articolo.querySelector(".sconto")?.value || ""; // percentuale
     const prezzoNetto = articolo.querySelector(".prezzoNetto")?.value || "";
     const quantita = articolo.querySelector(".quantita")?.value || "";
     const prezzoTotale = articolo.querySelector(".prezzoTotale")?.value || "";
@@ -44,8 +91,7 @@ function getPreventivoData() {
   return {
     datiCliente,
     articoli,
-    margine: document.getElementById("margine").value,
-    // Salviamo il contenuto (testo o numero) così come è stato digitato
+    margine: document.getElementById("margine").value, // percentuale, lasciamo invariato
     costoTrasporto: document.getElementById("costoTrasporto").value,
     costoInstallazione: document.getElementById("costoInstallazione").value,
     modalitaPagamento: document.getElementById("modalitaPagamento").value,
@@ -77,8 +123,7 @@ function popolaForm(data) {
     aggiungiArticoloConDati(article);
   });
 
-  document.getElementById("margine").value = data.margine;
-  // Ripristiniamo trasporto e installazione (possono essere testo o numerici)
+  document.getElementById("margine").value = data.margine; // lascio invariata la percentuale
   document.getElementById("costoTrasporto").value = data.costoTrasporto;
   document.getElementById("costoInstallazione").value = data.costoInstallazione;
   document.getElementById("modalitaPagamento").value = data.modalitaPagamento;
@@ -135,11 +180,25 @@ function aggiungiArticolo() {
       <summary>Nuovo Articolo</summary>
       <label>Codice: <input type="text" class="codice" oninput="aggiornaTitolo(this, ${idUnico})"></label>
       <label>Descrizione: <input type="text" class="descrizione"></label>
-      <label>Prezzo Lordo (€): <input type="number" class="prezzoLordo" step="0.01" oninput="calcolaPrezzo(this)"></label>
-      <label>Sconto (%): <input type="number" class="sconto" step="0.01" oninput="calcolaPrezzo(this)"></label>
-      <label>Prezzo Netto (€): <input type="number" class="prezzoNetto" step="0.01" oninput="calcolaPrezzo(this)"></label>
-      <label>Quantità: <input type="number" class="quantita" step="1" value="1" oninput="calcolaPrezzo(this)"></label>
-      <label>Prezzo Totale (€): <input type="text" class="prezzoTotale" readonly></label>
+      <!-- Prezzo Lordo -->
+      <label>Prezzo Lordo (€):
+        <input type="text" class="prezzoLordo" oninput="calcolaPrezzo(this)">
+      </label>
+      <!-- Sconto in %: lo lasciamo invariato -->
+      <label>Sconto (%):
+        <input type="number" class="sconto" step="0.01" oninput="calcolaPrezzo(this)">
+      </label>
+      <!-- Prezzo Netto -->
+      <label>Prezzo Netto (€):
+        <input type="text" class="prezzoNetto" oninput="calcolaPrezzo(this)">
+      </label>
+      <!-- Quantità -->
+      <label>Quantità:
+        <input type="text" class="quantita" value="1" oninput="calcolaPrezzo(this)">
+      </label>
+      <label>Prezzo Totale (€):
+        <input type="text" class="prezzoTotale" readonly>
+      </label>
       <button onclick="salvaArticolo(${idUnico})">Salva</button>
       <button onclick="rimuoviArticolo(this)">Rimuovi</button>
     </details>
@@ -155,13 +214,27 @@ function aggiungiArticoloConDati(dati) {
   div.innerHTML = `
     <details id="articolo-${idUnico}" open>
       <summary>${dati.codice || "Nuovo Articolo"}</summary>
-      <label>Codice: <input type="text" class="codice" value="${dati.codice || ""}" oninput="aggiornaTitolo(this, ${idUnico})"></label>
-      <label>Descrizione: <input type="text" class="descrizione" value="${dati.descrizione || ""}"></label>
-      <label>Prezzo Lordo (€): <input type="number" class="prezzoLordo" step="0.01" value="${dati.prezzoLordo || ""}" oninput="calcolaPrezzo(this)"></label>
-      <label>Sconto (%): <input type="number" class="sconto" step="0.01" value="${dati.sconto || ""}" oninput="calcolaPrezzo(this)"></label>
-      <label>Prezzo Netto (€): <input type="number" class="prezzoNetto" step="0.01" value="${dati.prezzoNetto || ""}" oninput="calcolaPrezzo(this)"></label>
-      <label>Quantità: <input type="number" class="quantita" step="1" value="${dati.quantita || 1}" oninput="calcolaPrezzo(this)"></label>
-      <label>Prezzo Totale (€): <input type="text" class="prezzoTotale" value="${dati.prezzoTotale || ""}" readonly></label>
+      <label>Codice:
+        <input type="text" class="codice" value="${dati.codice || ""}" oninput="aggiornaTitolo(this, ${idUnico})">
+      </label>
+      <label>Descrizione:
+        <input type="text" class="descrizione" value="${dati.descrizione || ""}">
+      </label>
+      <label>Prezzo Lordo (€):
+        <input type="text" class="prezzoLordo" value="${dati.prezzoLordo || ""}" oninput="calcolaPrezzo(this)">
+      </label>
+      <label>Sconto (%):
+        <input type="number" class="sconto" step="0.01" value="${dati.sconto || ""}" oninput="calcolaPrezzo(this)">
+      </label>
+      <label>Prezzo Netto (€):
+        <input type="text" class="prezzoNetto" value="${dati.prezzoNetto || ""}" oninput="calcolaPrezzo(this)">
+      </label>
+      <label>Quantità:
+        <input type="text" class="quantita" value="${dati.quantita || 1}" oninput="calcolaPrezzo(this)">
+      </label>
+      <label>Prezzo Totale (€):
+        <input type="text" class="prezzoTotale" value="${dati.prezzoTotale || ""}" readonly>
+      </label>
       <button onclick="salvaArticolo(${idUnico})">Salva</button>
       <button onclick="rimuoviArticolo(this)">Rimuovi</button>
     </details>
@@ -183,106 +256,101 @@ function rimuoviArticolo(btn) {
   aggiornaTotaleGenerale();
 }
 
-// Calcolo prezzo articolo
+// ------------------------------
+// CALCOLO PREZZO ARTICOLO
+// ------------------------------
+
 function calcolaPrezzo(input) {
   const row = input.closest(".articolo");
 
-  let prezzoLordo = parseFloat(row.querySelector(".prezzoLordo").value) || 0;
-  let sconto = parseFloat(row.querySelector(".sconto").value) || 0;
-  let quantita = parseFloat(row.querySelector(".quantita").value) || 1;
+  // 1) Leggiamo i campi di testo interpretandoli come numeri
+  let prezzoLordo = parseNumberITA(row.querySelector(".prezzoLordo").value);
+  let sconto = parseFloat(row.querySelector(".sconto").value) || 0; // in %
+  let quantita = parseNumberITA(row.querySelector(".quantita").value);
 
+  // 2) Calcoliamo prezzo netto
   const prezzoNettoEl = row.querySelector(".prezzoNetto");
-  let prezzoNetto = parseFloat(prezzoNettoEl.value) || 0;
+  let prezzoNetto = parseNumberITA(prezzoNettoEl.value);
 
-  // Se l'input modificato è il prezzo lordo o lo sconto, ricalcoliamo il prezzo netto
+  // Se l'input modificato è il Prezzo Lordo o lo sconto, ricalcoliamo il Netto
   if (input.classList.contains("prezzoLordo") || input.classList.contains("sconto")) {
     prezzoNetto = prezzoLordo * (1 - sconto / 100);
-    prezzoNettoEl.value = prezzoNetto.toFixed(2);
+    // Aggiorniamo il campo con il formato "it-IT"
+    prezzoNettoEl.value = formatNumberITA(prezzoNetto);
   }
-  // Altrimenti (se l'input modificato è il prezzo netto), lo lasciamo così com'è
 
-  const prezzoTotale = prezzoNetto * quantita;
-  row.querySelector(".prezzoTotale").value = prezzoTotale.toFixed(2);
+  // 3) Prezzo Totale = prezzoNetto * quantita
+  let prezzoTotale = prezzoNetto * quantita;
+  row.querySelector(".prezzoTotale").value = formatNumberITA(prezzoTotale);
+
+  // 4) Ri-formattiamo i campi Lordo, Netto e Quantità
+  //    (se vuoi farlo *solo* onblur, basta spostarli su onblur e togliere qui)
+  row.querySelector(".prezzoLordo").value = formatNumberITA(prezzoLordo);
+  row.querySelector(".quantita").value = formatNumberITA(quantita, false);
+  // prezzoNetto già aggiornato sopra
 
   aggiornaTotaleGenerale();
 }
 
 // ------------------------------
-// FUNZIONI DI CALCOLO TOTALI
+// CALCOLO TOTALI
 // ------------------------------
 
 function aggiornaTotaleGenerale() {
+  // Somma di tutti i "prezzoTotale"
   let totaleGenerale = 0;
   document.querySelectorAll(".prezzoTotale").forEach((input) => {
-    totaleGenerale += parseFloat(input.value) || 0;
+    let val = parseNumberITA(input.value);
+    totaleGenerale += val;
   });
-  document.getElementById("totaleArticoli").textContent = `Totale Articoli: ${totaleGenerale.toFixed(2)}€`;
+  document.getElementById("totaleArticoli").textContent =
+    "Totale Articoli: " + formatNumberITA(totaleGenerale) + "€";
   calcolaMarginalita();
 }
 
 function calcolaMarginalita() {
   const totaleArticoliText = document.getElementById("totaleArticoli").textContent;
-  const totaleArticoli = parseFloat(totaleArticoliText.replace(/[^0-9.,]/g, "").replace(",", ".")) || 0;
-  const margine = parseFloat(document.getElementById("margine").value) || 0;
+  // esempio "Totale Articoli: 3.000,50€"
+  // rimuoviamo tutto il testo e parse
+  let match = totaleArticoliText.match(/([\d.,]+)/);
+  let totaleArticoli = 0;
+  if (match) {
+    totaleArticoli = parseNumberITA(match[1]);
+  }
+  const margine = parseFloat(document.getElementById("margine").value) || 0; // %
   let nuovoTotale = totaleArticoli;
   if (margine > 0) {
     nuovoTotale = totaleArticoli / (1 - margine / 100);
   }
-  document.getElementById("totaleMarginalita").textContent = `Nuovo Totale Articoli: ${nuovoTotale.toFixed(2)}€`;
+  document.getElementById("totaleMarginalita").textContent =
+    "Nuovo Totale Articoli: " + formatNumberITA(nuovoTotale) + "€";
   calcolaTotaleFinale();
 }
 
 function calcolaTotaleFinale() {
-  // Leggiamo i campi di trasporto e installazione (possono essere testo o numerici)
-  const trasportoVal = document.getElementById("costoTrasporto").value.trim();
-  const installazioneVal = document.getElementById("costoInstallazione").value.trim();
+  // Leggiamo trasporto e installazione
+  const trasportoVal = document.getElementById("costoTrasporto").value;
+  const installazioneVal = document.getElementById("costoInstallazione").value;
 
-  // Proviamo a estrarre un valore numerico
-  let trasportoNum = parseFloat(trasportoVal.replace(",", "."));
-  if (isNaN(trasportoNum)) {
-    // Se è NaN, cioè testo non numerico (es. "incluso"), lo consideriamo = 0 nel calcolo
-    trasportoNum = 0;
-  }
+  const trasportoNum = parseNumberITA(trasportoVal);
+  const installazioneNum = parseNumberITA(installazioneVal);
 
-  let installazioneNum = parseFloat(installazioneVal.replace(",", "."));
-  if (isNaN(installazioneNum)) {
-    installazioneNum = 0;
-  }
-
-  // Leggiamo il totale con marginalità
+  // Leggiamo il "nuovoTotale" dalla riga "Nuovo Totale Articoli"
   const totaleMarginalitaText = document.getElementById("totaleMarginalita").textContent;
-  const nuovoTotale = parseFloat(totaleMarginalitaText.replace(/[^0-9.,]/g, "").replace(",", ".")) || 0;
+  let match = totaleMarginalitaText.match(/([\d.,]+)/);
+  let nuovoTotale = 0;
+  if (match) {
+    nuovoTotale = parseNumberITA(match[1]);
+  }
 
-  // Sommiamo solo i valori numerici
   const totaleFinale = nuovoTotale + trasportoNum + installazioneNum;
-  document.getElementById("totaleFinale").textContent = `Totale Finale: ${totaleFinale.toFixed(2)}€`;
+  document.getElementById("totaleFinale").textContent =
+    "Totale Finale: " + formatNumberITA(totaleFinale) + "€";
 }
 
 // ------------------------------
-// FUNZIONI DI GENERAZIONE DEL CONTENUTO (PDF/WHATSAPP)
+// FUNZIONI DI GENERAZIONE CONTENUTO (PDF/WHATSAPP)
 // ------------------------------
-
-/**
- * Funzione di supporto: restituisce una stringa da stampare
- * per i campi Trasporto/Installazione (o un fallback "0,00" se vuoto).
- * - Se l'utente ha scritto un numero, lo restituiamo con 2 decimali e "€"
- * - Se ha scritto testo, lo restituiamo così com'è.
- */
-function formatTrasportoInstallazione(val) {
-  if (!val.trim()) {
-    // Campo vuoto
-    return "0,00";
-  }
-  // Proviamo a interpretarlo come numero
-  let num = parseFloat(val.replace(",", "."));
-  if (isNaN(num)) {
-    // Non è un numero: restituiamo il testo
-    return val;
-  } else {
-    // È un numero
-    return num.toFixed(2) + "€";
-  }
-}
 
 function generaContenuto() {
   let contenuto = "";
@@ -303,7 +371,7 @@ function generaContenuto() {
   contenuto += `Cell/Tel.: ${document.getElementById("telefono").value}\n`;
   contenuto += `Email: ${document.getElementById("email").value}\n\n`;
 
-  // Distinzione: se spunta "mostraCodici"
+  // Semplificata o dettagliata
   if (document.getElementById("mostraCodici").checked) {
     // Modalità semplificata
     contenuto += "Articoli:\n";
@@ -317,12 +385,12 @@ function generaContenuto() {
       contenuto += `  Quantità: ${quantita}\n\n`;
     });
 
-    // Se è spuntato "mostraTrasporto", stampiamo trasporto e installazione come da input
+    // Trasporto + Installazione, se flag attivo
     if (document.getElementById("mostraTrasporto").checked) {
       const trasportoVal = document.getElementById("costoTrasporto").value;
       const installazioneVal = document.getElementById("costoInstallazione").value;
-      contenuto += `Trasporto: ${formatTrasportoInstallazione(trasportoVal)}\n`;
-      contenuto += `Installazione: ${formatTrasportoInstallazione(installazioneVal)}\n`;
+      contenuto += `Trasporto: ${trasportoVal}\n`;
+      contenuto += `Installazione: ${installazioneVal}\n`;
     }
 
     contenuto += document.getElementById("totaleFinale").textContent + "\n";
@@ -341,34 +409,34 @@ function generaContenuto() {
       const prezzoTotale = articolo.querySelector(".prezzoTotale")?.value || "";
       contenuto += `Codice: ${codice}\n`;
       contenuto += `  Descrizione: ${descrizione}\n`;
-      contenuto += `  Prezzo Lordo: ${prezzoLordo}€\n`;
-      contenuto += `  Sconto: ${sconto}%\n`;
+      contenuto += `  Prezzo Lordo: ${prezzoLordo}\n`; // già in formattazione it-IT
+      contenuto += `  Sconto: ${sconto}%\n`; // percentuale invariata
       if (document.getElementById("mostraPrezzi").checked) {
-        contenuto += `  Prezzo Netto: ${prezzoNetto}€\n`;
+        contenuto += `  Prezzo Netto: ${prezzoNetto}\n`;
       }
       contenuto += `  Quantità: ${quantita}\n`;
-      contenuto += `  Prezzo Totale: ${prezzoTotale}€\n\n`;
+      contenuto += `  Prezzo Totale: ${prezzoTotale}\n\n`;
     });
 
-    // Controlliamo i flag
+    // Flag
     const mostraPrezzi = document.getElementById("mostraPrezzi").checked;
     const mostraMarginalita = document.getElementById("mostraMarginalita").checked;
     const mostraTrasporto = document.getElementById("mostraTrasporto").checked;
 
     if (!mostraPrezzi && !mostraMarginalita && !mostraTrasporto) {
-      // Nessun flag selezionato: mostriamo tutto (margine, trasporto e installazione)
-      contenuto += `Margine: ${document.getElementById("margine").value || "0"}%\n`;
+      // Nessun flag: mostriamo tutto
+      contenuto += "Margine: " + (document.getElementById("margine").value || "0") + "%\n";
       contenuto += document.getElementById("totaleArticoli").textContent + "\n";
       contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
 
       const trasportoVal = document.getElementById("costoTrasporto").value;
       const installazioneVal = document.getElementById("costoInstallazione").value;
-      contenuto += `Trasporto: ${formatTrasportoInstallazione(trasportoVal)}\n`;
-      contenuto += `Installazione: ${formatTrasportoInstallazione(installazioneVal)}\n`;
+      contenuto += `Trasporto: ${trasportoVal}\n`;
+      contenuto += `Installazione: ${installazioneVal}\n`;
 
       contenuto += document.getElementById("totaleFinale").textContent + "\n";
     } else {
-      // Se almeno un flag è selezionato, stampiamo di conseguenza
+      // Almeno un flag
       contenuto += document.getElementById("totaleArticoli").textContent + "\n";
       if (mostraMarginalita) {
         contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
@@ -376,8 +444,8 @@ function generaContenuto() {
       if (mostraTrasporto) {
         const trasportoVal = document.getElementById("costoTrasporto").value;
         const installazioneVal = document.getElementById("costoInstallazione").value;
-        contenuto += `Trasporto: ${formatTrasportoInstallazione(trasportoVal)}\n`;
-        contenuto += `Installazione: ${formatTrasportoInstallazione(installazioneVal)}\n`;
+        contenuto += `Trasporto: ${trasportoVal}\n`;
+        contenuto += `Installazione: ${installazioneVal}\n`;
       }
       contenuto += document.getElementById("totaleFinale").textContent + "\n";
     }
