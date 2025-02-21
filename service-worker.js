@@ -5,8 +5,8 @@ const FILES_TO_CACHE = [
     "./style.css",
     "./app.js",
     "./manifest.json",
-    "./icon/FastSale-192.png",
-    "./icon/FastSale-512.png"
+    "./icon/FastSalePlus-192.png",
+    "./icon/FastSalePlus-512.png"
 ];
 
 // Installazione del Service Worker e caching dei file essenziali

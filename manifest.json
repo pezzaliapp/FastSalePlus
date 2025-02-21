@@ -1,6 +1,6 @@
 {
-    "name": "FastSale",
-    "short_name": "FastSale",
+    "name": "FastSalePlus",
+    "short_name": "FastSalePlus",
     "description": "Gestione rapida di preventivi con calcolo di marginalità e PDF",
     "start_url": "./index.html",
     "display": "standalone",
@@ -10,12 +10,12 @@
     "scope": "./",
     "icons": [
         {
-            "src": "icon/FastSale-192.png",
+            "src": "icon/FastSalePlus-192.png",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "icon/FastSale-512.png",
+            "src": "icon/FastSalePlus-512.png",
             "sizes": "512x512",
             "type": "image/png"
         }

@@ -1,6 +1,6 @@
-# FastSale - Gestione Preventivi
+# FastSalePlus - Gestione Preventivi
 
-**FastSale - Gestione Preventivi** è una Progressive Web App (PWA) pensata per la gestione e la generazione di preventivi per le aziende.  
+**FastSalePlus - Gestione Preventivi** è una Progressive Web App (PWA) pensata per la gestione e la generazione di preventivi per le aziende.  
 L'applicazione permette di:
 
 - Inserire i dati del cliente.
@@ -82,7 +82,7 @@ L'applicazione permette di:
    Clona il repository o scarica il file ZIP:
 
    ```bash
-   git clone https://github.com/tuo-username/FastSale.git
+   git clone https://github.com/tuo-username/FastSalePlus.git
 
 2.	Apri l’Applicazione:
    
