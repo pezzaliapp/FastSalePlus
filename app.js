@@ -461,3 +461,10 @@ function inviaADynamicEasyPrice() {
   let url = "https://pezzaliapp.github.io/EasyPrice/?totale=" + encodeURIComponent(totale);
   window.open(url, "_blank");
 }
+
+// -----------------------------------------------------
+// 8) COLLEGAMENTO DINAMICO A FLEXRENTCALC
+// -----------------------------------------------------
+function apriFlexRentCalc() {
+  window.open("https://pezzaliapp.github.io/FlexRentCalc/", "_blank");
+}
