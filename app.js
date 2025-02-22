@@ -170,7 +170,6 @@ function aggiungiArticolo() {
       <label>Descrizione: 
         <input type="text" class="descrizione">
       </label>
-      <!-- Prezzo Lordo, Sconto e Prezzo Netto in stile IT (text) -->
       <label>Prezzo Lordo (€): 
         <input type="text" class="prezzoLordo" oninput="calcolaPrezzo(this)">
       </label>
@@ -198,7 +197,6 @@ function aggiungiArticoloConDati(dati) {
   const idUnico   = Date.now() + Math.floor(Math.random() * 1000);
   const div       = document.createElement("div");
   div.classList.add("articolo");
-
   div.innerHTML = `
     <details id="articolo-${idUnico}" open>
       <summary>${dati.codice || "Nuovo Articolo"}</summary>
@@ -262,9 +260,9 @@ function rimuoviArticolo(btn) {
 function calcolaPrezzo(input) {
   const row = input.closest(".articolo");
 
-  // Interpretiamo come numeri in stile IT
+  // Interpretiamo come numeri in stile it-IT
   let prezzoLordo = parseNumberITA(row.querySelector(".prezzoLordo").value);
-  let sconto      = parseFloat(row.querySelector(".sconto").value) || 0;  // sconto in %
+  let sconto      = parseFloat(row.querySelector(".sconto").value) || 0;
   let quantita    = parseNumberITA(row.querySelector(".quantita").value);
 
   const prezzoNettoEl = row.querySelector(".prezzoNetto");
@@ -275,15 +273,11 @@ function calcolaPrezzo(input) {
     prezzoNetto = prezzoLordo * (1 - sconto / 100);
     // Sovrascriviamo il Prezzo Netto col valore formattato
     prezzoNettoEl.value = formatNumberITA(prezzoNetto);
-  } 
-  // Altrimenti, se l'input è Prezzo Netto, lasciamo ciò che ha digitato
-  // (ma se vuoi puoi pure formattarlo: 
-  // prezzoNettoEl.value = formatNumberITA(prezzoNetto); 
-  // occhio che potresti bloccare la digitazione)
+  }
+  // Se l'input è Prezzo Netto, usiamo il valore digitato manualmente
 
-  // Prezzo Totale = Netto * Quantità
-  let prezzoTotale = prezzoNetto * quantita;
-  // lo scriviamo in formato italiano
+  const manualNetto = parseFloat(prezzoNettoEl.value) || 0;
+  let prezzoTotale = manualNetto * quantita;
   row.querySelector(".prezzoTotale").value = formatNumberITA(prezzoTotale);
 
   aggiornaTotaleGenerale();
@@ -292,7 +286,6 @@ function calcolaPrezzo(input) {
 // -----------------------------------------------------
 // 5) CALCOLO TOTALI (Articoli, Margine, Trasporto, etc.)
 // -----------------------------------------------------
-
 function aggiornaTotaleGenerale() {
   let totaleGenerale = 0;
   document.querySelectorAll(".prezzoTotale").forEach(input => {
@@ -342,15 +335,10 @@ function calcolaTotaleFinale() {
 // -----------------------------------------------------
 // 6) GENERAZIONE CONTENUTO (PDF / WhatsApp)
 // -----------------------------------------------------
-
 function formatTrasportoInstallazione(val) {
   if (!val.trim()) return "0,00";
   let n = parseNumberITA(val);
-  if (isNaN(n) || n === 0) {
-    return val; // es. "incluso" 
-  } else {
-    return formatNumberITA(n) + "€";
-  }
+  return formatNumberITA(n) + "€";
 }
 
 function generaContenuto() {
@@ -428,10 +416,10 @@ function generaContenuto() {
       contenuto += document.getElementById("totaleFinale").textContent + "\n";
     } else {
       contenuto += document.getElementById("totaleArticoli").textContent + "\n";
-      if (mm) {
+      if(document.getElementById("mostraMarginalita").checked) {
         contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
       }
-      if (mt) {
+      if(document.getElementById("mostraTrasporto").checked) {
         const tv = document.getElementById("costoTrasporto").value;
         const iv = document.getElementById("costoInstallazione").value;
         contenuto += `Trasporto: ${formatTrasportoInstallazione(tv)}\n`;
@@ -461,4 +449,16 @@ function inviaWhatsApp() {
   const encoded = encodeURIComponent(testo);
   const link = `https://wa.me/?text=${encoded}`;
   window.open(link, "_blank");
+}
+
+// -----------------------------------------------------
+// 7) COLLEGAMENTO DINAMICO A EASYPRICE
+// -----------------------------------------------------
+function inviaADynamicEasyPrice() {
+  // Raccogliamo il Totale Finale e lo inviamo come parametro 'totale'
+  let totaleText = document.getElementById("totaleFinale").textContent; // es. "Totale Finale: 1.234,56€"
+  // Rimuoviamo il prefisso e il simbolo dell'euro
+  let totale = totaleText.replace("Totale Finale:", "").replace("€", "").trim();
+  let url = "https://pezzaliapp.github.io/EasyPrice/?totale=" + encodeURIComponent(totale);
+  window.open(url, "_blank");
 }
