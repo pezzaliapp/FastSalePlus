@@ -14,21 +14,20 @@ document.addEventListener("DOMContentLoaded", function () {
  * Interpreta "4.000,50" come 4000.50
  * - Rimuove i punti (usati per migliaia)
  * - Converte la virgola in punto
- * - parseFloat
+ * - Esegue parseFloat
  */
 function parseNumberITA(str) {
   if (!str) return 0;
   let pulito = str.replace(/[^\d.,-]/g, "");  // Elimina simboli non numerici
-  pulito = pulito.replace(/\./g, "");         // Rimuove i punti
-  pulito = pulito.replace(",", ".");          // Virgola -> Punto
+  pulito = pulito.replace(/\./g, "");          // Rimuove i punti
+  pulito = pulito.replace(",", ".");           // Virgola -> Punto
   let val = parseFloat(pulito);
   return isNaN(val) ? 0 : val;
 }
 
 /**
  * formatNumberITA(num)
- * Mostra un numero in stile it-IT, 
- * es. 4000.5 => "4.000,50"
+ * Restituisce un numero in stile it-IT, es. 4000.5 => "4.000,50"
  */
 function formatNumberITA(num) {
   if (isNaN(num)) num = 0;
@@ -274,9 +273,9 @@ function calcolaPrezzo(input) {
     // Sovrascriviamo il Prezzo Netto col valore formattato
     prezzoNettoEl.value = formatNumberITA(prezzoNetto);
   }
-  // Se l'input è Prezzo Netto, usiamo il valore digitato manualmente
-
-  const manualNetto = parseFloat(prezzoNettoEl.value) || 0;
+  // Se l'input è Prezzo Netto, usiamo il valore digitato manualmente.
+  // Importante: per leggere correttamente il valore formattato in stile it-IT, usiamo parseNumberITA
+  const manualNetto = parseNumberITA(prezzoNettoEl.value) || 0;
   let prezzoTotale = manualNetto * quantita;
   row.querySelector(".prezzoTotale").value = formatNumberITA(prezzoTotale);
 
@@ -457,7 +456,7 @@ function inviaWhatsApp() {
 function inviaADynamicEasyPrice() {
   // Raccogliamo il Totale Finale e lo inviamo come parametro 'totale'
   let totaleText = document.getElementById("totaleFinale").textContent; // es. "Totale Finale: 1.234,56€"
-  // Rimuoviamo il prefisso e il simbolo dell'euro
+  // Rimuoviamo il prefisso e il simbolo dell'euro:
   let totale = totaleText.replace("Totale Finale:", "").replace("€", "").trim();
   let url = "https://pezzaliapp.github.io/EasyPrice/?totale=" + encodeURIComponent(totale);
   window.open(url, "_blank");
