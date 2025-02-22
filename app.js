@@ -12,11 +12,14 @@ document.addEventListener("DOMContentLoaded", function () {
 /** 
  * parseNumberITA(str)
  * Interpreta "4.000,50" come 4000.50
+ * - Rimuove i punti (usati per migliaia)
+ * - Converte la virgola in punto
+ * - parseFloat
  */
 function parseNumberITA(str) {
   if (!str) return 0;
   let pulito = str.replace(/[^\d.,-]/g, "");  // Elimina simboli non numerici
-  pulito = pulito.replace(/\./g, "");         // Rimuove i punti (migliaia)
+  pulito = pulito.replace(/\./g, "");         // Rimuove i punti
   pulito = pulito.replace(",", ".");          // Virgola -> Punto
   let val = parseFloat(pulito);
   return isNaN(val) ? 0 : val;
@@ -24,7 +27,8 @@ function parseNumberITA(str) {
 
 /**
  * formatNumberITA(num)
- * Mostra un numero in stile it-IT, es. 4000.5 => "4.000,50"
+ * Mostra un numero in stile it-IT, 
+ * es. 4000.5 => "4.000,50"
  */
 function formatNumberITA(num) {
   if (isNaN(num)) num = 0;
@@ -166,6 +170,7 @@ function aggiungiArticolo() {
       <label>Descrizione: 
         <input type="text" class="descrizione">
       </label>
+      <!-- Prezzo Lordo, Sconto e Prezzo Netto in stile IT (text) -->
       <label>Prezzo Lordo (€): 
         <input type="text" class="prezzoLordo" oninput="calcolaPrezzo(this)">
       </label>
@@ -193,29 +198,42 @@ function aggiungiArticoloConDati(dati) {
   const idUnico   = Date.now() + Math.floor(Math.random() * 1000);
   const div       = document.createElement("div");
   div.classList.add("articolo");
+
   div.innerHTML = `
     <details id="articolo-${idUnico}" open>
       <summary>${dati.codice || "Nuovo Articolo"}</summary>
       <label>Codice:
-        <input type="text" class="codice" value="${dati.codice || ""}" oninput="aggiornaTitolo(this, ${idUnico})">
+        <input type="text" class="codice" 
+          value="${dati.codice || ""}" 
+          oninput="aggiornaTitolo(this, ${idUnico})">
       </label>
       <label>Descrizione:
-        <input type="text" class="descrizione" value="${dati.descrizione || ""}">
+        <input type="text" class="descrizione" 
+          value="${dati.descrizione || ""}">
       </label>
       <label>Prezzo Lordo (€):
-        <input type="text" class="prezzoLordo" value="${dati.prezzoLordo || ""}" oninput="calcolaPrezzo(this)">
+        <input type="text" class="prezzoLordo" 
+          value="${dati.prezzoLordo || ""}" 
+          oninput="calcolaPrezzo(this)">
       </label>
       <label>Sconto (%):
-        <input type="number" class="sconto" step="0.01" value="${dati.sconto || ""}" oninput="calcolaPrezzo(this)">
+        <input type="number" class="sconto" step="0.01"
+          value="${dati.sconto || ""}" 
+          oninput="calcolaPrezzo(this)">
       </label>
       <label>Prezzo Netto (€):
-        <input type="text" class="prezzoNetto" value="${dati.prezzoNetto || ""}" oninput="calcolaPrezzo(this)">
+        <input type="text" class="prezzoNetto" 
+          value="${dati.prezzoNetto || ""}" 
+          oninput="calcolaPrezzo(this)">
       </label>
       <label>Quantità:
-        <input type="text" class="quantita" value="${dati.quantita || 1}" oninput="calcolaPrezzo(this)">
+        <input type="text" class="quantita" value="${dati.quantita || 1}"
+          oninput="calcolaPrezzo(this)">
       </label>
       <label>Prezzo Totale (€):
-        <input type="text" class="prezzoTotale" value="${dati.prezzoTotale || ""}" readonly>
+        <input type="text" class="prezzoTotale"
+          value="${dati.prezzoTotale || ""}" 
+          readonly>
       </label>
       <button onclick="salvaArticolo(${idUnico})">Salva</button>
       <button onclick="rimuoviArticolo(this)">Rimuovi</button>
@@ -243,30 +261,38 @@ function rimuoviArticolo(btn) {
 // -----------------------------------------------------
 function calcolaPrezzo(input) {
   const row = input.closest(".articolo");
+
+  // Interpretiamo come numeri in stile IT
   let prezzoLordo = parseNumberITA(row.querySelector(".prezzoLordo").value);
-  let sconto      = parseFloat(row.querySelector(".sconto").value) || 0;
+  let sconto      = parseFloat(row.querySelector(".sconto").value) || 0;  // sconto in %
   let quantita    = parseNumberITA(row.querySelector(".quantita").value);
-  
-  const prezzoNettoField = row.querySelector(".prezzoNetto");
-  let prezzoNetto = parseNumberITA(prezzoNettoField.value);
-  
-  // Se l'input non proviene dal campo "prezzo netto" e il campo è vuoto, calcola automaticamente
-  if (input !== prezzoNettoField && !prezzoNettoField.value) {
+
+  const prezzoNettoEl = row.querySelector(".prezzoNetto");
+  let prezzoNetto     = parseNumberITA(prezzoNettoEl.value);
+
+  // Se l'input è Prezzo Lordo o Sconto, ricalcoliamo Prezzo Netto
+  if (input.classList.contains("prezzoLordo") || input.classList.contains("sconto")) {
     prezzoNetto = prezzoLordo * (1 - sconto / 100);
-    prezzoNettoField.value = formatNumberITA(prezzoNetto);
-  }
-  
-  // Usa il valore attuale (manuale o calcolato) per il totale
-  const manualNetto = parseFloat(prezzoNettoField.value) || 0;
-  let prezzoTotale = manualNetto * quantita;
+    // Sovrascriviamo il Prezzo Netto col valore formattato
+    prezzoNettoEl.value = formatNumberITA(prezzoNetto);
+  } 
+  // Altrimenti, se l'input è Prezzo Netto, lasciamo ciò che ha digitato
+  // (ma se vuoi puoi pure formattarlo: 
+  // prezzoNettoEl.value = formatNumberITA(prezzoNetto); 
+  // occhio che potresti bloccare la digitazione)
+
+  // Prezzo Totale = Netto * Quantità
+  let prezzoTotale = prezzoNetto * quantita;
+  // lo scriviamo in formato italiano
   row.querySelector(".prezzoTotale").value = formatNumberITA(prezzoTotale);
-  
+
   aggiornaTotaleGenerale();
 }
 
 // -----------------------------------------------------
 // 5) CALCOLO TOTALI (Articoli, Margine, Trasporto, etc.)
 // -----------------------------------------------------
+
 function aggiornaTotaleGenerale() {
   let totaleGenerale = 0;
   document.querySelectorAll(".prezzoTotale").forEach(input => {
@@ -278,8 +304,12 @@ function aggiornaTotaleGenerale() {
 }
 
 function calcolaMarginalita() {
-  const totaleArticoliText = document.getElementById("totaleArticoli").textContent;
-  const totaleArticoli = parseNumberITA(totaleArticoliText.replace(/[^0-9.,]/g, "").replace(',', '.')) || 0;
+  const testoTotale = document.getElementById("totaleArticoli").textContent;
+  let match = testoTotale.match(/([\d.,]+)/);
+  let totaleArticoli = 0;
+  if (match) {
+    totaleArticoli = parseNumberITA(match[1]);
+  }
   const margine = parseFloat(document.getElementById("margine").value) || 0;
   let nuovoTotale = totaleArticoli;
   if (margine > 0) {
@@ -291,33 +321,47 @@ function calcolaMarginalita() {
 }
 
 function calcolaTotaleFinale() {
-  const totaleMarginalitaText = document.getElementById("totaleMarginalita").textContent;
-  const nuovoTotale = parseNumberITA(totaleMarginalitaText.replace(/[^0-9.,]/g, "").replace(',', '.')) || 0;
-  const costoTrasporto = parseNumberITA(document.getElementById("costoTrasporto").value);
-  const costoInstallazione = parseNumberITA(document.getElementById("costoInstallazione").value);
-  const totaleFinale = nuovoTotale + costoTrasporto + costoInstallazione;
+  const trasportoVal     = document.getElementById("costoTrasporto").value;
+  const installazioneVal = document.getElementById("costoInstallazione").value;
+
+  let trasportoNum      = parseNumberITA(trasportoVal);
+  let installazioneNum  = parseNumberITA(installazioneVal);
+
+  const testoMarginalita = document.getElementById("totaleMarginalita").textContent;
+  let match = testoMarginalita.match(/([\d.,]+)/);
+  let nuovoTotale = 0;
+  if (match) {
+    nuovoTotale = parseNumberITA(match[1]);
+  }
+
+  let finale = nuovoTotale + trasportoNum + installazioneNum;
   document.getElementById("totaleFinale").textContent =
-    `Totale Finale: ${formatNumberITA(totaleFinale)}€`;
+    `Totale Finale: ${formatNumberITA(finale)}€`;
 }
 
 // -----------------------------------------------------
-// 6) FUNZIONI DI GENERAZIONE DEL CONTENUTO (PDF/WHATSAPP)
+// 6) GENERAZIONE CONTENUTO (PDF / WhatsApp)
 // -----------------------------------------------------
+
 function formatTrasportoInstallazione(val) {
   if (!val.trim()) return "0,00";
   let n = parseNumberITA(val);
-  return formatNumberITA(n) + "€";
+  if (isNaN(n) || n === 0) {
+    return val; // es. "incluso" 
+  } else {
+    return formatNumberITA(n) + "€";
+  }
 }
 
 function generaContenuto() {
   let contenuto = "";
-  
+
   let oggi = new Date();
   let gg   = String(oggi.getDate()).padStart(2, "0");
   let mm   = String(oggi.getMonth() + 1).padStart(2, "0");
   let yyyy = oggi.getFullYear();
   contenuto += `Data: ${gg}/${mm}/${yyyy}\n\n`;
-  
+
   // Dati Cliente
   contenuto += "Dati Cliente:\n";
   contenuto += `Nome Azienda: ${document.getElementById("nomeAzienda").value}\n`;
@@ -325,15 +369,15 @@ function generaContenuto() {
   contenuto += `Indirizzo: ${document.getElementById("indirizzo").value}\n`;
   contenuto += `Cell/Tel.: ${document.getElementById("telefono").value}\n`;
   contenuto += `Email: ${document.getElementById("email").value}\n\n`;
-  
+
   if (document.getElementById("mostraCodici").checked) {
     // Modalità semplificata
     contenuto += "Articoli:\n";
     const articoli = document.querySelectorAll(".articolo");
     articoli.forEach(art => {
-      const codice = art.querySelector(".codice")?.value || "";
-      const descrizione = art.querySelector(".descrizione")?.value || "";
-      const quantita = art.querySelector(".quantita")?.value || "";
+      const codice       = art.querySelector(".codice")?.value || "";
+      const descrizione  = art.querySelector(".descrizione")?.value || "";
+      const quantita     = art.querySelector(".quantita")?.value || "";
       contenuto += `Codice: ${codice}\n`;
       contenuto += `  Descrizione: ${descrizione}\n`;
       contenuto += `  Quantità: ${quantita}\n\n`;
@@ -351,13 +395,13 @@ function generaContenuto() {
     contenuto += "Articoli:\n";
     const articoli = document.querySelectorAll(".articolo");
     articoli.forEach(art => {
-      const codice = art.querySelector(".codice")?.value || "";
-      const descrizione = art.querySelector(".descrizione")?.value || "";
-      const lordo = art.querySelector(".prezzoLordo")?.value || "";
-      const sconto = art.querySelector(".sconto")?.value || "";
-      const netto = art.querySelector(".prezzoNetto")?.value || "";
-      const quantita = art.querySelector(".quantita")?.value || "";
-      const totale = art.querySelector(".prezzoTotale")?.value || "";
+      const codice       = art.querySelector(".codice")?.value || "";
+      const descrizione  = art.querySelector(".descrizione")?.value || "";
+      const lordo        = art.querySelector(".prezzoLordo")?.value || "";
+      const sconto       = art.querySelector(".sconto")?.value || "";
+      const netto        = art.querySelector(".prezzoNetto")?.value || "";
+      const quantita     = art.querySelector(".quantita")?.value || "";
+      const totale       = art.querySelector(".prezzoTotale")?.value || "";
       contenuto += `Codice: ${codice}\n`;
       contenuto += `  Descrizione: ${descrizione}\n`;
       contenuto += `  Prezzo Lordo: ${lordo}€\n`;
@@ -368,37 +412,36 @@ function generaContenuto() {
       contenuto += `  Quantità: ${quantita}\n`;
       contenuto += `  Prezzo Totale: ${totale}€\n\n`;
     });
-    
-    if (
-      !document.getElementById("mostraPrezzi").checked &&
-      !document.getElementById("mostraMarginalita").checked &&
-      !document.getElementById("mostraTrasporto").checked
-    ) {
-      contenuto += "Margine: " + (document.getElementById("margine").value || "0") + "%\n";
+
+    const mp = document.getElementById("mostraPrezzi").checked;
+    const mm = document.getElementById("mostraMarginalita").checked;
+    const mt = document.getElementById("mostraTrasporto").checked;
+
+    if (!mp && !mm && !mt) {
+      contenuto += `Margine: ${document.getElementById("margine").value || "0"}%\n`;
       contenuto += document.getElementById("totaleArticoli").textContent + "\n";
       contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
       const tv = document.getElementById("costoTrasporto").value;
       const iv = document.getElementById("costoInstallazione").value;
-      contenuto += "Trasporto: " + formatTrasportoInstallazione(tv) + "\n";
-      contenuto += "Installazione: " + formatTrasportoInstallazione(iv) + "\n";
+      contenuto += `Trasporto: ${formatTrasportoInstallazione(tv)}\n`;
+      contenuto += `Installazione: ${formatTrasportoInstallazione(iv)}\n`;
       contenuto += document.getElementById("totaleFinale").textContent + "\n";
     } else {
       contenuto += document.getElementById("totaleArticoli").textContent + "\n";
-      if (document.getElementById("mostraMarginalita").checked) {
+      if (mm) {
         contenuto += document.getElementById("totaleMarginalita").textContent + "\n";
       }
-      if (document.getElementById("mostraTrasporto").checked) {
+      if (mt) {
         const tv = document.getElementById("costoTrasporto").value;
         const iv = document.getElementById("costoInstallazione").value;
-        contenuto += "Trasporto: " + formatTrasportoInstallazione(tv) + "\n";
-        contenuto += "Installazione: " + formatTrasportoInstallazione(iv) + "\n";
+        contenuto += `Trasporto: ${formatTrasportoInstallazione(tv)}\n`;
+        contenuto += `Installazione: ${formatTrasportoInstallazione(iv)}\n`;
       }
       contenuto += document.getElementById("totaleFinale").textContent + "\n";
     }
-    
     contenuto += "\nModalità di Pagamento: " + document.getElementById("modalitaPagamento").value + "\n";
   }
-  
+
   return contenuto;
 }
 
@@ -418,16 +461,4 @@ function inviaWhatsApp() {
   const encoded = encodeURIComponent(testo);
   const link = `https://wa.me/?text=${encoded}`;
   window.open(link, "_blank");
-}
-
-// -----------------------------------------------------
-// 7) COLLEGAMENTO DINAMICO A EASYPRICE
-// -----------------------------------------------------
-function inviaADynamicEasyPrice() {
-  // Ad esempio, raccogliamo il Totale Finale e lo inviamo come parametro 'totale'
-  let totaleText = document.getElementById("totaleFinale").textContent; // e.g., "Totale Finale: 1.234,56€"
-  // Rimuoviamo il prefisso e il simbolo dell'euro:
-  let totale = totaleText.replace("Totale Finale:", "").replace("€", "").trim();
-  let url = "https://pezzaliapp.github.io/EasyPrice/?totale=" + encodeURIComponent(totale);
-  window.open(url, "_blank");
 }
