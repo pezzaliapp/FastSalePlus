@@ -1,133 +1,74 @@
-# FastSalePlus - Gestione Preventivi
+# FastSalePlus - Gestione Preventivi e Integrazioni PWA
 
-**FastSalePlus - Gestione Preventivi** è una Progressive Web App (PWA) pensata per la gestione e la generazione di preventivi per le aziende.  
-L'applicazione permette di:
+**FastSalePlus** è una Progressive Web App (PWA) progettata per semplificare la gestione dei preventivi, offrendo un’interfaccia intuitiva e funzionalità avanzate per la creazione, il calcolo e la condivisione dei preventivi in formato it-IT.
 
-- Inserire i dati del cliente.
-- Aggiungere articoli con codice, descrizione, prezzi, sconti e quantità.
-- Calcolare automaticamente i totali e applicare una percentuale di margine.
-- Inserire costi aggiuntivi (trasporto e installazione) e ottenere il Totale Finale.
-- Personalizzare l'output per la stampa o per l'invio via WhatsApp, scegliendo quali informazioni includere tramite opzioni (checkbox).
-- Salvare, richiamare e modificare preventivi salvati nel browser.
+## Caratteristiche Principali
 
----
+- **Gestione dei Dati Cliente:**  
+  Inserisci facilmente nome azienda, città, indirizzo, telefono ed email.
 
-## Caratteristiche
+- **Gestione degli Articoli:**  
+  Aggiungi e modifica articoli specificando:
+  - Codice e descrizione
+  - Prezzo lordo, sconto e prezzo netto (calcolato automaticamente oppure inserito manualmente)
+  - Quantità  
+  I calcoli (totali, margine, costi aggiuntivi) vengono effettuati in tempo reale, interpretando correttamente i numeri in formato italiano (es. "4.000,57").
 
-- **Gestione Dati Cliente:**  
-  Inserisci nome aziendale, città, indirizzo, telefono ed email.
+- **Calcolo Automatico dei Totali:**  
+  Il sistema esegue:
+  - La somma dei prezzi totali degli articoli
+  - L’applicazione del margine desiderato
+  - L’aggiunta dei costi di trasporto e installazione
 
-- **Gestione Dinamica degli Articoli:**  
-  Aggiungi articoli specificando:
-  - Codice e descrizione.
-  - Prezzo lordo, sconto (con calcolo automatico di Prezzo Netto e Prezzo Totale).
-  - Quantità.
+- **Output Personalizzato:**  
+  Genera preventivi in formato testo (PDF simulato) o inviali direttamente via WhatsApp.  
+  Scegli la modalità semplificata (mostra solo codici, descrizioni e quantità) oppure quella dettagliata (con tutti i valori).
 
-- **Calcolo dei Totali:**  
-  - **Totale Articoli:** Somma dei prezzi totali degli articoli.
-  - **Nuovo Totale Articoli:** Totale aggiornato applicando il margine percentuale.
-  - **Costi Aggiuntivi:** Trasporto e Installazione.
-  - **Totale Finale:** Somma del Nuovo Totale Articoli, trasporto e installazione.
+- **Integrazione Dinamica:**  
+  - **EasyPrice:** Invia dinamicamente il Totale Finale a [EasyPrice](https://pezzaliapp.github.io/EasyPrice/) per ulteriori calcoli, come il noleggio.
+  - **FlexRentCalc:** Apri direttamente [FlexRentCalc](https://pezzaliapp.github.io/FlexRentCalc/) per configurazioni e calcoli flessibili relativi al noleggio.
 
-- **Opzioni di Stampa Personalizzabili:**  
-  Utilizza le checkbox per decidere quali dettagli includere nell'output:
-  - *Mostra Codici Articolo*: Se attivo, viene utilizzata una modalità semplificata.
-  - *Mostra Prezzi Netti*, *Mostra Marginalità*, *Trasporto e Installazione Inclusi*: Permettono ulteriori personalizzazioni.
-  
-  **Modalità Dettagliata (nessun flag selezionato):**  
-  L'output visualizzerà, nell'ordine:
-  1. **Margine:** Il valore inserito (es. "Margine: 10%").
-  2. **Totale Articoli.**
-  3. **Nuovo Totale Articoli.**
-  4. **Trasporto.**
-  5. **Installazione.**
-  6. **Totale Finale.**
-  7. **Modalità di Pagamento.**
+## Ecosistema pezzaliAPP
 
-- **Generazione e Condivisione del Preventivo:**  
-  - **PDF Simulato:** Scarica il preventivo come file di testo.
-  - **Invio via WhatsApp:** Condividi il preventivo direttamente su WhatsApp.
+FastSalePlus è parte di un ecosistema di soluzioni PWA sviluppate da **pezzaliAPP**. Oltre a FastSalePlus, puoi esplorare:
 
-- **Salvataggio e Richiamo dei Preventivi:**  
-  I preventivi vengono salvati nel browser (utilizzando il localStorage) e possono essere richiamati e modificati in un secondo momento.
+- **EasyPrice:**  
+  [https://pezzaliapp.github.io/EasyPrice/](https://pezzaliapp.github.io/EasyPrice/)  
+  Permette di calcolare ulteriori parametri (es. il noleggio) utilizzando il Totale Finale inviato da FastSalePlus.
 
----
+- **FlexRentCalc:**  
+  [https://pezzaliapp.github.io/FlexRentCalc/](https://pezzaliapp.github.io/FlexRentCalc/)  
+  Offre soluzioni per il calcolo flessibile del noleggio, adattabili alle diverse esigenze operative.
 
-## Come Funziona
+Altre app complementari (es. per fatturazione, CRM, monitoraggio dell’inventario o dashboard di vendita) potranno essere integrate per offrire una suite completa di strumenti per la gestione commerciale.
 
-1. **Inserimento Dati:**  
-   Compila il form con i dati del cliente e aggiungi gli articoli tramite il pulsante "Aggiungi Articolo".
+## Installazione e Utilizzo
 
-2. **Calcolo Automatico:**  
-   I campi *Prezzo Netto* e *Prezzo Totale* vengono aggiornati in tempo reale. Inserendo il margine, il Nuovo Totale Articoli e il Totale Finale vengono aggiornati automaticamente.
-
-3. **Output Personalizzato:**  
-   Seleziona le checkbox per decidere quali informazioni includere nell'output.  
-   - Se **nessun flag** viene selezionato, l'output dettagliato mostra prima il margine (es. "Margine: 10%"), poi il Totale Articoli, il Nuovo Totale Articoli, i costi di Trasporto e Installazione, ed infine il Totale Finale, seguito dalla Modalità di Pagamento.
-   - Se vengono selezionati flag, l'output varia in base alle opzioni scelte.
-
-4. **Generazione e Condivisione:**  
-   - Clicca su **Genera PDF** per scaricare il preventivo come file di testo.
-   - Oppure clicca su **Invia su WhatsApp** per condividere il preventivo tramite WhatsApp.
-
-5. **Salvataggio/Richiamo:**  
-   - Salva i preventivi per poterli richiamare e modificare in seguito.
-   - Usa il menu a tendina per selezionare un preventivo salvato e modificarlo.
-
----
-
-## Installazione
-
-1. **Scarica il Progetto:**  
-   Clona il repository o scarica il file ZIP:
+1. **Clona la Repository:**
 
    ```bash
-   git clone https://github.com/tuo-username/FastSalePlus.git
+   git clone https://github.com/pezzaliapp/FastSalePlus.git
 
-2.	Apri l’Applicazione:
-   
-Apri il file index.html in un browser moderno.
-Per sfruttare appieno le funzionalità PWA, utilizza un server locale (ad esempio, Live Server per VSCode).
+2.	Apri l’app nel Browser:
+Puoi aprire direttamente il file index.html oppure utilizzare un server locale (ad es. Live Server) per una migliore esperienza.
+3.	Inserisci i Dati e Genera il Preventivo:
+	
+	 •	Compila i dati del cliente e aggiungi gli articoli, inserendo i numeri nel formato italiano (es. “4.000,57”).
+	
+	 •	Il sistema calcola automaticamente i totali, applica il margine e somma i costi aggiuntivi (trasporto e installazione).
+	
+	 •	Scegli le opzioni di output per generare il preventivo in modalità semplificata o dettagliata.
 
-3.	Installa come PWA (Opzionale):
-   
-Su dispositivi compatibili, potrai installare l’applicazione sulla home screen per un’esperienza offline.
-
-Utilizzo
-
-	1.	Inserisci i Dati del Cliente:
-Compila il form con le informazioni richieste.
-
-	2.	Aggiungi Articoli:
-Clicca su “Aggiungi Articolo” per inserire i dettagli di ciascun articolo.
-
-	3.	Configura l’Output:
-Seleziona le checkbox per personalizzare i dettagli da includere nel preventivo.
-
-	4.	Visualizza i Totali:
-I totali vengono calcolati automaticamente in base ai dati inseriti.
-
-	5.	Genera Preventivo:
- 
-•	Clicca su Genera PDF per scaricare il file di testo del preventivo.
- 
-•	Oppure clicca su Invia su WhatsApp per condividere il preventivo.
- 
-	6.	Salva e Richiama Preventivi:
- 
-•	Utilizza il pulsante Salva Preventivo per salvare il preventivo nel browser.
-•	Usa il menu a tendina per richiamare e modificare i preventivi salvati.
-
-Struttura dei File
-
-	•	index.html: Interfaccia utente principale.
-	•	app.js: Logica JavaScript per la gestione dei dati, il calcolo dei totali, il salvataggio e la generazione dell’output.
-	•	style.css: (se presente) File CSS per lo stile dell’applicazione.
-	•	manifest.json: (se presente) File di configurazione per la PWA.
+	•	Usa i pulsanti per generare il file di testo (PDF simulato) o inviare il 	preventivo via WhatsApp.
+4.	Collegamenti Dinamici:
+	
+ 	•	Usa il pulsante per inviare il Totale Finale a EasyPrice (viene passato come parametro nella query string).
+	
+ 	•	Usa il pulsante dedicato per aprire FlexRentCalc.
 
 Contributi
 
-I contributi sono i benvenuti! Se desideri migliorare l’applicazione, per favore forka il repository e invia una pull request.
+I contributi sono benvenuti! Se desideri migliorare FastSalePlus o aggiungere nuove funzionalità, sentiti libero di forkarla e inviare una pull request.
 
 Licenza
 
@@ -137,5 +78,3 @@ Contatti
 
 Per domande o suggerimenti, contattami via email: pezzalialessandro@gmail.com
 GitHub: pezzaliapp
-
----
