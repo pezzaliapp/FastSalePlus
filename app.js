@@ -12,9 +12,6 @@ document.addEventListener("DOMContentLoaded", function () {
 /** 
  * parseNumberITA(str)
  * Interpreta "4.000,50" come 4000.50
- * - Rimuove i punti (usati per migliaia)
- * - Converte la virgola in punto
- * - Esegue parseFloat
  */
 function parseNumberITA(str) {
   if (!str) return 0;
@@ -274,7 +271,6 @@ function calcolaPrezzo(input) {
     prezzoNettoEl.value = formatNumberITA(prezzoNetto);
   }
   // Se l'input è Prezzo Netto, usiamo il valore digitato manualmente.
-  // Importante: per leggere correttamente il valore formattato in stile it-IT, usiamo parseNumberITA
   const manualNetto = parseNumberITA(prezzoNettoEl.value) || 0;
   let prezzoTotale = manualNetto * quantita;
   row.querySelector(".prezzoTotale").value = formatNumberITA(prezzoTotale);
@@ -467,4 +463,11 @@ function inviaADynamicEasyPrice() {
 // -----------------------------------------------------
 function apriFlexRentCalc() {
   window.open("https://pezzaliapp.github.io/FlexRentCalc/", "_blank");
+}
+
+// -----------------------------------------------------
+// 9) COLLEGAMENTO DINAMICO A MCINV
+// -----------------------------------------------------
+function apriMCINV() {
+  window.open("https://pezzaliapp.github.io/MCINV/", "_blank");
 }
