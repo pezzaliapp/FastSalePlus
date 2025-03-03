@@ -6,6 +6,8 @@
   <title>FastSalePlus - Gestione Preventivi</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
+  <!-- Libreria Papa Parse per importare i CSV -->
+  <script src="https://unpkg.com/papaparse@5.3.1/papaparse.min.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
@@ -19,6 +21,20 @@
     <label>Indirizzo: <input type="text" id="indirizzo"></label>
     <label>Cell/Tel.: <input type="text" id="telefono"></label>
     <label>Email (opzionale): <input type="email" id="email"></label>
+  </fieldset>
+
+  <!-- Import CSV e Selezione da Listino -->
+  <fieldset>
+    <legend>Importa Listino CSV</legend>
+    <input type="file" id="csvFileInput" accept=".csv">
+    <br><br>
+    <label>Filtra Articoli:
+      <input type="text" id="searchListino" placeholder="Cerca per codice o descrizione">
+    </label>
+    <br><br>
+    <select id="listinoSelect" size="8" style="width: 100%;"></select>
+    <br>
+    <button onclick="aggiungiArticoloDaListino()">Aggiungi Articolo Selezionato</button>
   </fieldset>
 
   <!-- Articoli -->
