@@ -1,8 +1,12 @@
 // File: app.js
 
+// Variabile globale per i dati del listino CSV
+let listino = [];
+
 document.addEventListener("DOMContentLoaded", function () {
   caricaPreventiviSalvati();
   aggiornaTotaleGenerale();
+  initCSVImport();
 });
 
 // -----------------------------------------------------
@@ -16,8 +20,8 @@ document.addEventListener("DOMContentLoaded", function () {
 function parseNumberITA(str) {
   if (!str) return 0;
   let pulito = str.replace(/[^\d.,-]/g, "");  // Elimina simboli non numerici
-  pulito = pulito.replace(/\./g, "");          // Rimuove i punti
-  pulito = pulito.replace(",", ".");           // Virgola -> Punto
+  pulito = pulito.replace(/\./g, "");         // Rimuove i punti
+  pulito = pulito.replace(",", ".");          // Virgola -> Punto
   let val = parseFloat(pulito);
   return isNaN(val) ? 0 : val;
 }
@@ -35,7 +39,103 @@ function formatNumberITA(num) {
 }
 
 // -----------------------------------------------------
-// 2) GESTIONE PREVENTIVI
+// 2) INIZIALIZZAZIONE IMPORT CSV
+// -----------------------------------------------------
+function initCSVImport() {
+  const fileInput = document.getElementById("csvFileInput");
+  if (!fileInput) return;
+
+  // Al cambio del file CSV, usiamo Papa Parse
+  fileInput.addEventListener("change", function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    Papa.parse(file, {
+      complete: function(results) {
+        // results.data è un array di array [ [col0, col1, col2, ...], ... ]
+        // Saltiamo la prima riga (header) e leggiamo solo le prime 3 colonne
+        listino = results.data.map((row, idx) => {
+          if (idx === 0) return null; // Saltiamo l'header
+          return {
+            codice: (row[0] || "").trim(),
+            descrizione: (row[1] || "").trim(),
+            prezzoLordo: (row[2] || "").trim()
+          };
+        }).filter(Boolean);
+
+        aggiornaListinoSelect();
+      },
+      error: function(err) {
+        console.error("Errore nel parsing del CSV:", err);
+      }
+    });
+  });
+
+  // Quando digitiamo nel campo di ricerca, aggiorniamo la select
+  const searchInput = document.getElementById("searchListino");
+  if (searchInput) {
+    searchInput.addEventListener("input", function() {
+      aggiornaListinoSelect();
+    });
+  }
+}
+
+// Aggiorna il menù a tendina filtrato
+function aggiornaListinoSelect() {
+  const select = document.getElementById("listinoSelect");
+  const searchTerm = document.getElementById("searchListino").value.toLowerCase();
+  select.innerHTML = "";
+
+  // Filtro sugli articoli del listino
+  const filtered = listino.filter(item => {
+    const codice = item.codice.toLowerCase();
+    const desc = item.descrizione.toLowerCase();
+    return codice.includes(searchTerm) || desc.includes(searchTerm);
+  });
+
+  // Popoliamo la select con i risultati filtrati
+  filtered.forEach((item, index) => {
+    const option = document.createElement("option");
+    option.value = index; 
+    option.textContent = `${item.codice} - ${item.descrizione} - €${item.prezzoLordo}`;
+    select.appendChild(option);
+  });
+}
+
+// Al click su "Aggiungi Articolo Selezionato"
+function aggiungiArticoloDaListino() {
+  const select = document.getElementById("listinoSelect");
+  if (!select.value) return;
+
+  // Rifacciamo lo stesso filtro usato per popolare la select
+  const searchTerm = document.getElementById("searchListino").value.toLowerCase();
+  const filtered = listino.filter(item => {
+    const codice = item.codice.toLowerCase();
+    const desc = item.descrizione.toLowerCase();
+    return codice.includes(searchTerm) || desc.includes(searchTerm);
+  });
+
+  // Prendiamo l'elemento selezionato
+  const item = filtered[parseInt(select.value)];
+  if (!item) return;
+
+  // Creiamo l'oggetto compatibile con aggiungiArticoloConDati
+  const datiArticolo = {
+    codice: item.codice,
+    descrizione: item.descrizione,
+    prezzoLordo: item.prezzoLordo,
+    sconto: "",
+    prezzoNetto: "",
+    quantita: "1",
+    prezzoTotale: ""
+  };
+
+  // Aggiungiamo la "riga" articolo con i dati
+  aggiungiArticoloConDati(datiArticolo);
+}
+
+// -----------------------------------------------------
+// 3) GESTIONE PREVENTIVI
 // -----------------------------------------------------
 
 function caricaPreventiviSalvati() {
@@ -149,7 +249,7 @@ function aggiornaListaPreventivi() {
 }
 
 // -----------------------------------------------------
-// 3) GESTIONE ARTICOLI
+// 4) GESTIONE ARTICOLI
 // -----------------------------------------------------
 
 function aggiungiArticolo() {
@@ -251,7 +351,7 @@ function rimuoviArticolo(btn) {
 }
 
 // -----------------------------------------------------
-// 4) CALCOLO PREZZI ARTICOLO
+// 5) CALCOLO PREZZI ARTICOLO
 // -----------------------------------------------------
 function calcolaPrezzo(input) {
   const row = input.closest(".articolo");
@@ -270,7 +370,7 @@ function calcolaPrezzo(input) {
     // Sovrascriviamo il Prezzo Netto col valore formattato
     prezzoNettoEl.value = formatNumberITA(prezzoNetto);
   }
-  // Se l'input è Prezzo Netto, usiamo il valore digitato manualmente.
+  // Se l'input è Prezzo Netto, usiamo il valore digitato manualmente
   const manualNetto = parseNumberITA(prezzoNettoEl.value) || 0;
   let prezzoTotale = manualNetto * quantita;
   row.querySelector(".prezzoTotale").value = formatNumberITA(prezzoTotale);
@@ -279,7 +379,7 @@ function calcolaPrezzo(input) {
 }
 
 // -----------------------------------------------------
-// 5) CALCOLO TOTALI (Articoli, Margine, Trasporto, etc.)
+// 6) CALCOLO TOTALI (Articoli, Margine, Trasporto, etc.)
 // -----------------------------------------------------
 function aggiornaTotaleGenerale() {
   let totaleGenerale = 0;
@@ -328,7 +428,7 @@ function calcolaTotaleFinale() {
 }
 
 // -----------------------------------------------------
-// 6) GENERAZIONE CONTENUTO (PDF / WhatsApp)
+// 7) GENERAZIONE CONTENUTO (PDF / WhatsApp)
 // -----------------------------------------------------
 function formatTrasportoInstallazione(val) {
   if (!val.trim()) return "0,00";
@@ -430,6 +530,7 @@ function generaContenuto() {
 
 function generaPDF() {
   const testo = generaContenuto();
+  // Invece di un vero PDF, salviamo in formato .txt (per semplicità)
   const blob = new Blob([testo], { type: "text/plain" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -447,7 +548,7 @@ function inviaWhatsApp() {
 }
 
 // -----------------------------------------------------
-// 7) COLLEGAMENTO DINAMICO A EASYPRICE
+// 8) COLLEGAMENTO DINAMICO A EASYPRICE
 // -----------------------------------------------------
 function inviaADynamicEasyPrice() {
   // Raccogliamo il Totale Finale e lo inviamo come parametro 'totale'
@@ -459,14 +560,14 @@ function inviaADynamicEasyPrice() {
 }
 
 // -----------------------------------------------------
-// 8) COLLEGAMENTO DINAMICO A FLEXRENTCALC
+// 9) COLLEGAMENTO DINAMICO A FLEXRENTCALC
 // -----------------------------------------------------
 function apriFlexRentCalc() {
   window.open("https://pezzaliapp.github.io/FlexRentCalc/", "_blank");
 }
 
 // -----------------------------------------------------
-// 9) COLLEGAMENTO DINAMICO A MCINV
+// 10) COLLEGAMENTO DINAMICO A MCINV
 // -----------------------------------------------------
 function apriMCINV() {
   window.open("https://pezzaliapp.github.io/MCINV/", "_blank");
