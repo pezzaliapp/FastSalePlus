@@ -1,5 +1,5 @@
-<!-- app.js -->
-<script>
+// File: app.js
+
 // Variabile globale per i dati del listino CSV
 let listino = [];
 
@@ -8,13 +8,6 @@ document.addEventListener("DOMContentLoaded", function () {
   aggiornaTotaleGenerale();
   initCSVImport();
 });
-
-// -----------------------------------------------------
-// Funzione di arrotondamento a 2 decimali
-// -----------------------------------------------------
-function round2(val) {
-  return Math.round(val * 100) / 100;
-}
 
 // -----------------------------------------------------
 // 1) FUNZIONI DI PARSING/FORMATTAZIONE ALL'ITALIANA
@@ -358,12 +351,12 @@ function rimuoviArticolo(btn) {
 }
 
 // -----------------------------------------------------
-// 5) CALCOLO PREZZI ARTICOLO (con arrotondamenti a 2 decimali)
+// 5) CALCOLO PREZZI ARTICOLO
 // -----------------------------------------------------
 function calcolaPrezzo(input) {
   const row = input.closest(".articolo");
 
-  // Interpretiamo i campi come numeri in stile it-IT
+  // Interpretiamo come numeri in stile it-IT
   let prezzoLordo = parseNumberITA(row.querySelector(".prezzoLordo").value);
   let sconto      = parseFloat(row.querySelector(".sconto").value) || 0;
   let quantita    = parseNumberITA(row.querySelector(".quantita").value);
@@ -373,18 +366,13 @@ function calcolaPrezzo(input) {
 
   // Se l'input è Prezzo Lordo o Sconto, ricalcoliamo Prezzo Netto
   if (input.classList.contains("prezzoLordo") || input.classList.contains("sconto")) {
-    let prezzoNettoCalcolato = prezzoLordo * (1 - sconto / 100);
-    // Arrotondiamo subito a 2 decimali
-    prezzoNettoCalcolato = round2(prezzoNettoCalcolato);
+    prezzoNetto = prezzoLordo * (1 - sconto / 100);
     // Sovrascriviamo il Prezzo Netto col valore formattato
-    prezzoNettoEl.value = formatNumberITA(prezzoNettoCalcolato);
+    prezzoNettoEl.value = formatNumberITA(prezzoNetto);
   }
-
-  // Rileggiamo il netto eventualmente formattato
-  let prezzoNettoEffettivo = parseNumberITA(prezzoNettoEl.value);
-
-  // Calcolo del prezzo totale = (netto * quantità), poi arrotondo
-  let prezzoTotale = round2(prezzoNettoEffettivo * quantita);
+  // Se l'input è Prezzo Netto, usiamo il valore digitato manualmente
+  const manualNetto = parseNumberITA(prezzoNettoEl.value) || 0;
+  let prezzoTotale = manualNetto * quantita;
   row.querySelector(".prezzoTotale").value = formatNumberITA(prezzoTotale);
 
   aggiornaTotaleGenerale();
@@ -398,9 +386,6 @@ function aggiornaTotaleGenerale() {
   document.querySelectorAll(".prezzoTotale").forEach(input => {
     totaleGenerale += parseNumberITA(input.value);
   });
-  // Arrotondiamo sempre
-  totaleGenerale = round2(totaleGenerale);
-
   document.getElementById("totaleArticoli").textContent =
     `Totale Articoli: ${formatNumberITA(totaleGenerale)}€`;
   calcolaMarginalita();
@@ -413,14 +398,11 @@ function calcolaMarginalita() {
   if (match) {
     totaleArticoli = parseNumberITA(match[1]);
   }
-  
   const margine = parseFloat(document.getElementById("margine").value) || 0;
   let nuovoTotale = totaleArticoli;
   if (margine > 0) {
     nuovoTotale = totaleArticoli / (1 - margine / 100);
-    nuovoTotale = round2(nuovoTotale);
   }
-
   document.getElementById("totaleMarginalita").textContent =
     `Nuovo Totale Articoli: ${formatNumberITA(nuovoTotale)}€`;
   calcolaTotaleFinale();
@@ -441,9 +423,6 @@ function calcolaTotaleFinale() {
   }
 
   let finale = nuovoTotale + trasportoNum + installazioneNum;
-  // Arrotondiamo a 2 decimali
-  finale = round2(finale);
-
   document.getElementById("totaleFinale").textContent =
     `Totale Finale: ${formatNumberITA(finale)}€`;
 }
@@ -593,4 +572,3 @@ function apriFlexRentCalc() {
 function apriMCINV() {
   window.open("https://pezzaliapp.github.io/MCINV/", "_blank");
 }
-</script>
