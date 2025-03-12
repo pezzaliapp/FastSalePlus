@@ -584,8 +584,8 @@ function inviaADynamicEasyPrice() {
 // -----------------------------------------------------
 // 9) COLLEGAMENTO DINAMICO A FLEXRENTCALC
 // -----------------------------------------------------
-function apriFlexRentCalc() {
-  window.open("https://pezzaliapp.github.io/FlexRentCalc/", "_blank");
+function apriLoSvizzero() {
+  window.open("https://pezzaliapp.github.io/LoSvizzero/", "_blank");
 }
 
 // -----------------------------------------------------
