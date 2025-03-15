@@ -569,17 +569,6 @@ function inviaWhatsApp() {
   window.open(link, "_blank");
 }
 
-// -----------------------------------------------------
-// 8) COLLEGAMENTO DINAMICO A EASYPRICE
-// -----------------------------------------------------
-function inviaADynamicEasyPrice() {
-  // Raccogliamo il Totale Finale e lo inviamo come parametro 'totale'
-  let totaleText = document.getElementById("totaleFinale").textContent; // es. "Totale Finale: 1.234,56€"
-  // Rimuoviamo il prefisso e il simbolo dell'euro:
-  let totale = totaleText.replace("Totale Finale:", "").replace("€", "").trim();
-  let url = "https://pezzaliapp.github.io/EasyPrice/?totale=" + encodeURIComponent(totale);
-  window.open(url, "_blank");
-}
 
 // -----------------------------------------------------
 // 9) COLLEGAMENTO DINAMICO A FLEXRENTCALC
